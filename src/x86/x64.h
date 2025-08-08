@@ -25,3 +25,5 @@ void x86_64_reg_print(uint8_t*);
 void x86_64_print_stack(uint8_t*, uint64_t*);
 
 void x86_64_dec(uint8_t*, uint64_t*, uint64_t*);
+
+void x86_64_inc(uint8_t*, uint64_t, uint64_t);

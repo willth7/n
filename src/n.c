@@ -53,6 +53,8 @@ void (*n_print_stack) (uint8_t*, uint64_t*);
 
 void (*n_dec) (uint8_t*, uint64_t*, uint64_t*);
 
+void (*n_inc) (uint8_t*, uint64_t, uint64_t);
+
 uint64_t str_int_dec(int8_t* a) {
 	uint64_t b = 0;
 	for(uint8_t i = 0; i < 20; i++) {
@@ -299,6 +301,7 @@ int8_t main(int32_t argc, int8_t** argv) {
 		n_reg_print = x86_64_reg_print;
 		n_print_stack = x86_64_print_stack;
 		n_dec = x86_64_dec;
+		n_inc = x86_64_inc;
 		regn = 138;
 	}
 	else {
@@ -353,8 +356,14 @@ int8_t main(int32_t argc, int8_t** argv) {
 		uint64_t sp = n_reg_get_sp(bin);
 		uint64_t ip = n_reg_get_ip(bin);
 		
+		uint64_t step = str_int_dec(argv[4]);
+		
 		if (!e) {
 			n_dasm(bin, bn, sym, symn, &e, regn, sp, ip);
+			for (uint64_t i = 0; i < step; i++) {
+				n_inc(bin, bn, ip);
+			}
+			n_writ(bin, bn, sym, symn, argv[2]);
 		}
 		
 		free(bin);
