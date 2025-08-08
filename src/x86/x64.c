@@ -20,7 +20,7 @@
 #include <stdio.h>
 
 void x86_64_reg_set_sp(uint8_t* bin, uint64_t bn) {
-	bn = bn - 146;
+	bn = bn - 138;
 	bin[32] = bn;
 	bin[33] = bn >> 8;
 	bin[34] = bn >> 16;
@@ -29,6 +29,11 @@ void x86_64_reg_set_sp(uint8_t* bin, uint64_t bn) {
 	bin[37] = bn >> 40;
 	bin[38] = bn >> 48;
 	bin[39] = bn >> 56;
+}
+
+uint64_t x86_64_reg_get_sp(uint8_t* bin) {
+	uint64_t sp = bin[32] + (bin[33] << 8) + (bin[34] << 16) + (bin[35] << 24) + (bin[36] << 32) + (bin[37] << 40) + (bin[38] << 48) + (bin[39] << 56);
+	return sp;
 }
 
 uint64_t x86_64_reg_get_ip(uint8_t* bin) {
@@ -89,6 +94,19 @@ void x86_64_reg_print(uint8_t* bin) {
 	printf("    %02x %02x %02x %02x:%02x %02x:%02x:%02x  \n", bin[127], bin[126], bin[125], bin[124], bin[123], bin[122], bin[121], bin[120]);
 	printf("                    :r11b");
 	printf("                      :r15b\n\n");
+}
+
+void x86_64_print_stack(uint8_t* bin, uint64_t* bn) {
+	printf("%02x %02x %02x %02x %02x %02x %02x %02x                      ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3], bin[*bn + 4], bin[*bn + 5], bin[*bn + 6], bin[*bn + 7]);
+	for (uint8_t i = 0; i < 8; i++) {
+		if (bin[*bn + i] >= 32 && bin[*bn + i] < 127) {
+			printf("%c", bin[*bn + i]);
+		}
+		else {
+			printf(" ");
+		}
+	}
+	*bn = *bn + 8;
 }
 
 int8_t* x86_64_r8(uint8_t r) {

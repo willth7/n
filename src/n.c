@@ -43,9 +43,13 @@ void (*n_writ) (uint8_t*, uint64_t, struct n_sym_s*, uint64_t, uint8_t*);
 
 void (*n_reg_set_sp) (uint8_t*, uint64_t);
 
+uint64_t (*n_reg_get_sp) (uint8_t*);
+
 uint64_t (*n_reg_get_ip) (uint8_t*);
 
 void (*n_reg_print) (uint8_t*);
+
+void (*n_print_stack) (uint8_t*, uint64_t*);
 
 void (*n_dec) (uint8_t*, uint64_t*, uint64_t*);
 
@@ -89,13 +93,13 @@ uint64_t str_int_dec(int8_t* a) {
 	}
 }
 
-void n_dasm(uint8_t* bin, uint64_t bn, struct n_sym_s* sym, uint64_t symn, int8_t* e, uint8_t regn, uint64_t ip) {
+void n_dasm(uint8_t* bin, uint64_t bn, struct n_sym_s* sym, uint64_t symn, int8_t* e, uint8_t regn, uint64_t sp, uint64_t ip) {
 	n_reg_print(bin);
 	uint64_t bi = 0;
 	while (bi < (bn - regn)) {
 		for (uint64_t i = 0; i < symn; i++) {
-			if (sym[i].addr == bi) {
-				printf("(%s)\n", sym[i].str);
+			if (sym[i].addr == bi + regn) {
+				printf("[*%s]\n", sym[i].str);
 			}
 		}
 		
@@ -127,15 +131,20 @@ void n_dasm(uint8_t* bin, uint64_t bn, struct n_sym_s* sym, uint64_t symn, int8_
 				printf("%02x %02x %02x %02x [ ] ", (bi >> 24) & 255, (bi >> 16) & 255, (bi >> 8) & 255, bi & 255);
 			}
 		}
-		uint64_t addr = (uint64_t) -1;
-		n_dec(bin + regn, &bi, &addr);
-		
-		if (addr != (uint64_t) -1) {
-			for (uint64_t i = 0; i < symn; i++) {
-				if (sym[i].addr == addr) {
-					printf("; *%s", sym[i].str);
+		if (bi < sp) {
+			uint64_t addr = (uint64_t) -1;
+			n_dec(bin + regn, &bi, &addr);
+			
+			if (addr != (uint64_t) -1) {
+				for (uint64_t i = 0; i < symn; i++) {
+					if (sym[i].addr == addr + regn) {
+						printf("; [*%s]", sym[i].str);
+					}
 				}
 			}
+		}
+		else {
+			n_print_stack(bin + regn, &bi);
 		}
 		printf("\n");
 	}
@@ -285,8 +294,10 @@ int8_t main(int32_t argc, int8_t** argv) {
 	}
 	else if (!strcmp(argv[1], "x86-64")) {
 		n_reg_set_sp = x86_64_reg_set_sp;
+		n_reg_get_sp = x86_64_reg_get_sp;
 		n_reg_get_ip = x86_64_reg_get_ip;
 		n_reg_print = x86_64_reg_print;
+		n_print_stack = x86_64_print_stack;
 		n_dec = x86_64_dec;
 		regn = 138;
 	}
@@ -339,10 +350,11 @@ int8_t main(int32_t argc, int8_t** argv) {
 		int8_t e = 0;
 		
 		n_read(bin, &bn, sym, &symn, argv[2], &e);
+		uint64_t sp = n_reg_get_sp(bin);
 		uint64_t ip = n_reg_get_ip(bin);
 		
 		if (!e) {
-			n_dasm(bin, bn, sym, symn, &e, regn, ip);
+			n_dasm(bin, bn, sym, symn, &e, regn, sp, ip);
 		}
 		
 		free(bin);
