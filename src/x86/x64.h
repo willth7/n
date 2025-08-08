@@ -14,7 +14,9 @@
 
 //   sub umbra alarum suarum
 
-void x86_64_reg_init(uint8_t*, uint64_t);
+void x86_64_reg_set_sp(uint8_t*, uint64_t);
+
+uint64_t x86_64_reg_get_ip(uint8_t*);
 
 void x86_64_reg_print(uint8_t*);
 

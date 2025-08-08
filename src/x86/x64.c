@@ -19,15 +19,21 @@
 #include <string.h>
 #include <stdio.h>
 
-void x86_64_reg_init(uint8_t* bin, uint64_t stack) {
-	bin[32] = stack;
-	bin[33] = stack >> 8;
-	bin[34] = stack >> 16;
-	bin[35] = stack >> 24;
-	bin[36] = stack >> 32;
-	bin[37] = stack >> 40;
-	bin[38] = stack >> 48;
-	bin[39] = stack >> 56;
+void x86_64_reg_set_sp(uint8_t* bin, uint64_t bn) {
+	bn = bn - 146;
+	bin[32] = bn;
+	bin[33] = bn >> 8;
+	bin[34] = bn >> 16;
+	bin[35] = bn >> 24;
+	bin[36] = bn >> 32;
+	bin[37] = bn >> 40;
+	bin[38] = bn >> 48;
+	bin[39] = bn >> 56;
+}
+
+uint64_t x86_64_reg_get_ip(uint8_t* bin) {
+	uint64_t ip = bin[128] + (bin[129] << 8) + (bin[130] << 16) + (bin[131] << 24) + (bin[132] << 32) + (bin[133] << 40) + (bin[134] << 48) + (bin[135] << 56);
+	return ip;
 }
 
 void x86_64_reg_print(uint8_t* bin) {
