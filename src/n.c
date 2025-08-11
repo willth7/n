@@ -308,20 +308,19 @@ int8_t main(int32_t argc, int8_t** argv) {
 		printf("error: unsupported architecture\n");
 	}
 	
-	if (!strcmp(argv[2] + strlen(argv[2]) - 4, ".bin")) {
-		n_read = n_read_bin;
-		n_writ = n_writ_bin;
-	}
-	else if (!strcmp(argv[2] + strlen(argv[2]) - 3, ".zn")) {
-		n_read = n_read_zn;
-		n_writ = n_writ_zn;
-	}
-	else {
-		printf("error: invalid input format\n");
-		return -1;
-	}
-	
 	if (!strcmp(argv[3], "--init")) {
+		if (!strcmp(argv[2] + strlen(argv[2]) - 4, ".bin")) {
+			n_read = n_read_bin;
+			n_writ = n_writ_bin;
+		}
+		else if (!strcmp(argv[2] + strlen(argv[2]) - 3, ".zn")) {
+			n_read = n_read_zn;
+			n_writ = n_writ_zn;
+		}
+		else {
+			printf("error: invalid input format\n");
+			return -1;
+		}
 		uint8_t* bin = calloc(16777216, 1);
 		uint64_t bn = 0;
 		struct n_sym_s* sym = calloc(16777216, 1);
@@ -335,9 +334,18 @@ int8_t main(int32_t argc, int8_t** argv) {
 		
 		bn = bn + str_int_dec(argv[4]);
 		n_reg_set_sp(bin, bn);
+		uint64_t sp = n_reg_get_sp(bin);
+		uint64_t ip = n_reg_get_ip(bin);
 		
 		if (!e) {
-			n_writ(bin, bn, sym, symn, argv[2]);
+			n_dasm(bin, bn, sym, symn, &e, regn, sp, ip);
+			uint8_t* str = malloc(strlen(argv[2]) + 2);
+			memcpy(str, argv[2], strlen(argv[2]));
+			str[strlen(argv[2])] = '.';
+			str[strlen(argv[2]) + 1] = 'n';
+			str[strlen(argv[2]) + 2] = 0;
+			n_writ(bin, bn, sym, symn, str);
+			free(str);
 		}
 		
 		free(bin);
@@ -345,6 +353,18 @@ int8_t main(int32_t argc, int8_t** argv) {
 		return 0;
 	}
 	else if (!strcmp(argv[3], "--inc")) {
+		if (!strcmp(argv[2] + strlen(argv[2]) - 6, ".bin.n")) {
+			n_read = n_read_bin;
+			n_writ = n_writ_bin;
+		}
+		else if (!strcmp(argv[2] + strlen(argv[2]) - 5, ".zn.n")) {
+			n_read = n_read_zn;
+			n_writ = n_writ_zn;
+		}
+		else {
+			printf("error: invalid input format\n");
+			return -1;
+		}
 		uint8_t* bin = calloc(16777216, 1);
 		uint64_t bn = 0;
 		struct n_sym_s* sym = calloc(16777216, 1);
@@ -353,16 +373,17 @@ int8_t main(int32_t argc, int8_t** argv) {
 		int8_t e = 0;
 		
 		n_read(bin, &bn, sym, &symn, argv[2], &e);
-		uint64_t sp = n_reg_get_sp(bin);
 		uint64_t ip = n_reg_get_ip(bin);
 		
 		uint64_t step = str_int_dec(argv[4]);
 		
 		if (!e) {
-			n_dasm(bin, bn, sym, symn, &e, regn, sp, ip);
 			for (uint64_t i = 0; i < step; i++) {
 				n_inc(bin, bn, ip);
 			}
+			uint64_t sp = n_reg_get_sp(bin);
+			ip = n_reg_get_ip(bin);
+			n_dasm(bin, bn, sym, symn, &e, regn, sp, ip);
 			n_writ(bin, bn, sym, symn, argv[2]);
 		}
 		
