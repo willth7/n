@@ -3686,76 +3686,152 @@ uint8_t x86_64_dec_imm(uint8_t* bin, uint64_t* bn, uint64_t* addr, uint8_t op0, 
 				printf("%02x ", bin[*bn]);
 				uint8_t d = bin[*bn];
 				*bn = *bn + 1;
-				if (lgo) {
-					printf("         %02x %02x ", bin[*bn], bin[*bn + 1]);
-					uint16_t k = bin[*bn] + (bin[*bn + 1] << 8);
-					*bn = *bn + 2;
-					if (lga) {
-						printf("         %sw (%s, %u), %u", mn, x86_64_dec_r32(b), d, k);
+				if (d & 128) {
+					d = ~d + 1;
+					if (lgo) {
+						printf("         %02x %02x ", bin[*bn], bin[*bn + 1]);
+						uint16_t k = bin[*bn] + (bin[*bn + 1] << 8);
+						*bn = *bn + 2;
+						if (lga) {
+							printf("         %sw (%s, -%u), %u", mn, x86_64_dec_r32(b), d, k);
+						}
+						else {
+							printf("         %sw (%s, -%u), %u", mn, x86_64_dec_r64(b), d, k);
+						}
+					}
+					else if (!rx3) {
+						printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
+						uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
+						*bn = *bn + 4;
+						if (lga) {
+							printf("   %sd (%s, -%u), %u", mn, x86_64_dec_r32(b), d, k);
+						}
+						else {
+							printf("   %sd (%s, -%u), %u", mn, x86_64_dec_r64(b), d, k);
+						}
 					}
 					else {
-						printf("         %sw (%s, %u), %u", mn, x86_64_dec_r64(b), d, k);
-					}
-				}
-				else if (!rx3) {
-					printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
-					uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
-					*bn = *bn + 4;
-					if (lga) {
-						printf("   %sd (%s, %u), %u", mn, x86_64_dec_r32(b), d, k);
-					}
-					else {
-						printf("   %sd (%s, %u), %u", mn, x86_64_dec_r64(b), d, k);
+						printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
+						uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
+						*bn = *bn + 4;
+						if (lga) {
+							printf("   %sq (%s, -%u), %u", mn, x86_64_dec_r32(b), d, k);
+						}
+						else {
+							printf("   %sq (%s, -%u), %u", mn, x86_64_dec_r64(b), d, k);
+						}
 					}
 				}
 				else {
-					printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
-					uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
-					*bn = *bn + 4;
-					if (lga) {
-						printf("   %sq (%s, %u), %u", mn, x86_64_dec_r32(b), d, k);
+					if (lgo) {
+						printf("         %02x %02x ", bin[*bn], bin[*bn + 1]);
+						uint16_t k = bin[*bn] + (bin[*bn + 1] << 8);
+						*bn = *bn + 2;
+						if (lga) {
+							printf("         %sw (%s, %u), %u", mn, x86_64_dec_r32(b), d, k);
+						}
+						else {
+							printf("         %sw (%s, %u), %u", mn, x86_64_dec_r64(b), d, k);
+						}
+					}
+					else if (!rx3) {
+						printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
+						uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
+						*bn = *bn + 4;
+						if (lga) {
+							printf("   %sd (%s, %u), %u", mn, x86_64_dec_r32(b), d, k);
+						}
+						else {
+							printf("   %sd (%s, %u), %u", mn, x86_64_dec_r64(b), d, k);
+						}
 					}
 					else {
-						printf("   %sq (%s, %u), %u", mn, x86_64_dec_r64(b), d, k);
+						printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
+						uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
+						*bn = *bn + 4;
+						if (lga) {
+							printf("   %sq (%s, %u), %u", mn, x86_64_dec_r32(b), d, k);
+						}
+						else {
+							printf("   %sq (%s, %u), %u", mn, x86_64_dec_r64(b), d, k);
+						}
 					}
 				}
-			}
+			}	
 			else if (s) {
 				*bn = *bn + 1;
 				printf("%02x ", bin[*bn]);
 				uint8_t d = bin[*bn];
 				*bn = *bn + 1;
-				if (lgo) {
-					printf("         %02x %02x ", bin[*bn], bin[*bn + 1]);
-					uint16_t k = bin[*bn] + (bin[*bn + 1] << 8);
-					*bn = *bn + 2;
-					if (lga) {
-						printf("         %sw (%s, (%s, %u), %u), %u", mn, x86_64_dec_r32(b), x86_64_dec_r32(i), x86_64_dec_s8(s), d, k);
+				if (d & 128) {
+					d = ~d + 1;
+					if (lgo) {
+						printf("         %02x %02x ", bin[*bn], bin[*bn + 1]);
+						uint16_t k = bin[*bn] + (bin[*bn + 1] << 8);
+						*bn = *bn + 2;
+						if (lga) {
+							printf("         %sw (%s, (%s, %u), -%u), %u", mn, x86_64_dec_r32(b), x86_64_dec_r32(i), x86_64_dec_s8(s), d, k);
+						}
+						else {
+							printf("         %sw (%s, (%s, %u), -%u), %u", mn, x86_64_dec_r64(b), x86_64_dec_r64(i), x86_64_dec_s8(s), d, k);
+						}
+					}
+					else if (!rx3) {
+						printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
+						uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
+						*bn = *bn + 4;
+						if (lga) {
+							printf("   %sd (%s, (%s, %u), -%u), %u", mn, x86_64_dec_r32(b), x86_64_dec_r32(i), x86_64_dec_s8(s), d, k);
+						}
+						else {
+							printf("   %sd (%s, (%s, %u), -%u), %u", mn, x86_64_dec_r64(b), x86_64_dec_r64(i), x86_64_dec_s8(s), d, k);
+						}
 					}
 					else {
-						printf("         %sw (%s, (%s, %u), %u), %u", mn, x86_64_dec_r64(b), x86_64_dec_r64(i), x86_64_dec_s8(s), d, k);
-					}
-				}
-				else if (!rx3) {
-					printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
-					uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
-					*bn = *bn + 4;
-					if (lga) {
-						printf("   %sd (%s, (%s, %u), %u), %u", mn, x86_64_dec_r32(b), x86_64_dec_r32(i), x86_64_dec_s8(s), d, k);
-					}
-					else {
-						printf("   %sd (%s, (%s, %u), %u), %u", mn, x86_64_dec_r64(b), x86_64_dec_r64(i), x86_64_dec_s8(s), d, k);
+						printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
+						uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
+						*bn = *bn + 4;
+						if (lga) {
+							printf("   %sq (%s, (%s, %u), -%u), %u", mn, x86_64_dec_r32(b), x86_64_dec_r32(i), x86_64_dec_s8(s), d, k);
+						}
+						else {
+							printf("   %sq (%s, (%s, %u), -%u), %u", mn, x86_64_dec_r64(b), x86_64_dec_r64(i), x86_64_dec_s8(s), d, k);
+						}
 					}
 				}
 				else {
-					printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
-					uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
-					*bn = *bn + 4;
-					if (lga) {
-						printf("   %sq (%s, (%s, %u), %u), %u", mn, x86_64_dec_r32(b), x86_64_dec_r32(i), x86_64_dec_s8(s), d, k);
+					if (lgo) {
+						printf("         %02x %02x ", bin[*bn], bin[*bn + 1]);
+						uint16_t k = bin[*bn] + (bin[*bn + 1] << 8);
+						*bn = *bn + 2;
+						if (lga) {
+							printf("         %sw (%s, (%s, %u), %u), %u", mn, x86_64_dec_r32(b), x86_64_dec_r32(i), x86_64_dec_s8(s), d, k);
+						}
+						else {
+							printf("         %sw (%s, (%s, %u), %u), %u", mn, x86_64_dec_r64(b), x86_64_dec_r64(i), x86_64_dec_s8(s), d, k);
+						}
+					}
+					else if (!rx3) {
+						printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
+						uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
+						*bn = *bn + 4;
+						if (lga) {
+							printf("   %sd (%s, (%s, %u), %u), %u", mn, x86_64_dec_r32(b), x86_64_dec_r32(i), x86_64_dec_s8(s), d, k);
+						}
+						else {
+							printf("   %sd (%s, (%s, %u), %u), %u", mn, x86_64_dec_r64(b), x86_64_dec_r64(i), x86_64_dec_s8(s), d, k);
+						}
 					}
 					else {
-						printf("   %sq (%s, (%s, %u), %u), %u", mn, x86_64_dec_r64(b), x86_64_dec_r64(i), x86_64_dec_s8(s), d, k);
+						printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
+						uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
+						*bn = *bn + 4;
+						if (lga) {
+							printf("   %sq (%s, (%s, %u), %u), %u", mn, x86_64_dec_r32(b), x86_64_dec_r32(i), x86_64_dec_s8(s), d, k);
+						}
+						else {
+							printf("   %sq (%s, (%s, %u), %u), %u", mn, x86_64_dec_r64(b), x86_64_dec_r64(i), x86_64_dec_s8(s), d, k);
+						}
 					}
 				}
 			}
@@ -3764,37 +3840,75 @@ uint8_t x86_64_dec_imm(uint8_t* bin, uint64_t* bn, uint64_t* addr, uint8_t op0, 
 				printf("%02x ", bin[*bn]);
 				uint8_t d = bin[*bn];
 				*bn = *bn + 1;
-				if (lgo) {
-					printf("         %02x %02x ", bin[*bn], bin[*bn + 1]);
-					uint16_t k = bin[*bn] + (bin[*bn + 1] << 8);
-					*bn = *bn + 2;
-					if (lga) {
-						printf("         %sw (%s, (%s), %u), %u", mn, x86_64_dec_r32(b), x86_64_dec_r32(i), d, k);
+				if (d & 128) {
+					d = ~d + 1;
+					if (lgo) {
+						printf("         %02x %02x ", bin[*bn], bin[*bn + 1]);
+						uint16_t k = bin[*bn] + (bin[*bn + 1] << 8);
+						*bn = *bn + 2;
+						if (lga) {
+							printf("         %sw (%s, (%s), -%u), %u", mn, x86_64_dec_r32(b), x86_64_dec_r32(i), d, k);
+						}
+						else {
+							printf("         %sw (%s, (%s), -%u), %u", mn, x86_64_dec_r64(b), x86_64_dec_r64(i), d, k);
+						}
+					}
+					else if (!rx3) {
+						printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
+						uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
+						*bn = *bn + 4;
+						if (lga) {
+							printf("   %sd (%s, (%s), -%u), %u", mn, x86_64_dec_r32(b), x86_64_dec_r32(i), d, k);
+						}
+						else {
+							printf("   %sd (%s, (%s), -%u), %u", mn, x86_64_dec_r64(b), x86_64_dec_r64(i), d, k);
+						}
 					}
 					else {
-						printf("         %sw (%s, (%s), %u), %u", mn, x86_64_dec_r64(b), x86_64_dec_r64(i), d, k);
-					}
-				}
-				else if (!rx3) {
-					printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
-					uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
-					*bn = *bn + 4;
-					if (lga) {
-						printf("   %sd (%s, (%s), %u), %u", mn, x86_64_dec_r32(b), x86_64_dec_r32(i), d, k);
-					}
-					else {
-						printf("   %sd (%s, (%s), %u), %u", mn, x86_64_dec_r64(b), x86_64_dec_r64(i), d, k);
+						printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
+						uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
+						*bn = *bn + 4;
+						if (lga) {
+							printf("   %sq (%s, (%s), -%u), %u", mn, x86_64_dec_r32(b), x86_64_dec_r32(i), d, k);
+						}
+						else {
+							printf("   %sq (%s, (%s), -%u), %u", mn, x86_64_dec_r64(b), x86_64_dec_r64(i), d, k);
+						}
 					}
 				}
 				else {
-					printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
-					uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
-					*bn = *bn + 4;
-					if (lga) {
-						printf("   %sq (%s, (%s), %u), %u", mn, x86_64_dec_r32(b), x86_64_dec_r32(i), d, k);
+					if (lgo) {
+						printf("         %02x %02x ", bin[*bn], bin[*bn + 1]);
+						uint16_t k = bin[*bn] + (bin[*bn + 1] << 8);
+						*bn = *bn + 2;
+						if (lga) {
+							printf("         %sw (%s, (%s), %u), %u", mn, x86_64_dec_r32(b), x86_64_dec_r32(i), d, k);
+						}
+						else {
+							printf("         %sw (%s, (%s), %u), %u", mn, x86_64_dec_r64(b), x86_64_dec_r64(i), d, k);
+						}
+					}
+					else if (!rx3) {
+						printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
+						uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
+						*bn = *bn + 4;
+						if (lga) {
+							printf("   %sd (%s, (%s), %u), %u", mn, x86_64_dec_r32(b), x86_64_dec_r32(i), d, k);
+						}
+						else {
+							printf("   %sd (%s, (%s), %u), %u", mn, x86_64_dec_r64(b), x86_64_dec_r64(i), d, k);
+						}
 					}
 					else {
-						printf("   %sq (%s, (%s), %u), %u", mn, x86_64_dec_r64(b), x86_64_dec_r64(i), d, k);
+						printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
+						uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
+						*bn = *bn + 4;
+						if (lga) {
+							printf("   %sq (%s, (%s), %u), %u", mn, x86_64_dec_r32(b), x86_64_dec_r32(i), d, k);
+						}
+						else {
+							printf("   %sq (%s, (%s), %u), %u", mn, x86_64_dec_r64(b), x86_64_dec_r64(i), d, k);
+						}
 					}
 				}
 			}
@@ -3804,37 +3918,75 @@ uint8_t x86_64_dec_imm(uint8_t* bin, uint64_t* bn, uint64_t* addr, uint8_t op0, 
 			printf("   %02x ", bin[*bn]);
 			uint8_t d = bin[*bn];
 			*bn = *bn + 1;
-			if (lgo) {
-				printf("         %02x %02x ", bin[*bn], bin[*bn + 1]);
-				uint16_t k = bin[*bn] + (bin[*bn + 1] << 8);
-				*bn = *bn + 2;
-				if (lga) {
-					printf("         %sw (%s, %u), %u", mn, x86_64_dec_r32(mrd), d, k);
+			if (d & 128) {
+				d = ~d + 1;
+				if (lgo) {
+					printf("         %02x %02x ", bin[*bn], bin[*bn + 1]);
+					uint16_t k = bin[*bn] + (bin[*bn + 1] << 8);
+					*bn = *bn + 2;
+					if (lga) {
+						printf("         %sw (%s, -%u), %u", mn, x86_64_dec_r32(mrd), d, k);
+					}
+					else {
+						printf("         %sw (%s, -%u), %u", mn, x86_64_dec_r64(mrd), d, k);
+					}
+				}
+				else if (!rx3) {
+					printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
+					uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
+					*bn = *bn + 4;
+					if (lga) {
+						printf("   %sd (%s, -%u), %u", mn, x86_64_dec_r32(mrd), d, k);
+					}
+					else {
+						printf("   %sd (%s, -%u), %u", mn, x86_64_dec_r64(mrd), d, k);
+					}
 				}
 				else {
-					printf("         %sw (%s, %u), %u", mn, x86_64_dec_r64(mrd), d, k);
-				}
-			}
-			else if (!rx3) {
-				printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
-				uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
-				*bn = *bn + 4;
-				if (lga) {
-					printf("   %sd (%s, %u), %u", mn, x86_64_dec_r32(mrd), d, k);
-				}
-				else {
-					printf("   %sd (%s, %u), %u", mn, x86_64_dec_r64(mrd), d, k);
+					printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
+					uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
+					*bn = *bn + 4;
+					if (lga) {
+						printf("   %sq (%s, -%u), %u", mn, x86_64_dec_r32(mrd), d, k);
+					}
+					else {
+						printf("   %sq (%s, -%u), %u", mn, x86_64_dec_r64(mrd), d, k);
+					}
 				}
 			}
 			else {
-				printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
-				uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
-				*bn = *bn + 4;
-				if (lga) {
-					printf("   %sq (%s, %u), %u", mn, x86_64_dec_r32(mrd), d, k);
+				if (lgo) {
+					printf("         %02x %02x ", bin[*bn], bin[*bn + 1]);
+					uint16_t k = bin[*bn] + (bin[*bn + 1] << 8);
+					*bn = *bn + 2;
+					if (lga) {
+						printf("         %sw (%s, %u), %u", mn, x86_64_dec_r32(mrd), d, k);
+					}
+					else {
+						printf("         %sw (%s, %u), %u", mn, x86_64_dec_r64(mrd), d, k);
+					}
+				}
+				else if (!rx3) {
+					printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
+					uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
+					*bn = *bn + 4;
+					if (lga) {
+						printf("   %sd (%s, %u), %u", mn, x86_64_dec_r32(mrd), d, k);
+					}
+					else {
+						printf("   %sd (%s, %u), %u", mn, x86_64_dec_r64(mrd), d, k);
+					}
 				}
 				else {
-					printf("   %sq (%s, %u), %u", mn, x86_64_dec_r64(mrd), d, k);
+					printf("         %02x %02x %02x %02x ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3]);
+					uint32_t k = bin[*bn] + (bin[*bn + 1] << 8) + (bin[*bn + 2] << 16) + (bin[*bn + 3] << 24);
+					*bn = *bn + 4;
+					if (lga) {
+						printf("   %sq (%s, %u), %u", mn, x86_64_dec_r32(mrd), d, k);
+					}
+					else {
+						printf("   %sq (%s, %u), %u", mn, x86_64_dec_r64(mrd), d, k);
+					}
 				}
 			}
 		}
@@ -15423,6 +15575,1306 @@ uint8_t x86_64_inc_rax(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op, void 
 	return 1;
 }
 
+uint8_t x86_64_inc_k80(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op0, uint8_t op1, void (*x86_64_inc_op) (uint8_t*, uint64_t, uint64_t, uint8_t), uint8_t lga, uint8_t lgo, uint8_t rex, uint8_t rx0, uint8_t rx1, uint8_t rx2, uint8_t rx3) {
+	if (bin[ip] == op0 && (bin[ip + 1] >> 3) == (0 | op1)) {
+		ip = ip + 1;
+		uint8_t mrd = (bin[ip] & 7) + (8 * rx0);
+		
+		if ((mrd & 7) == 4) {
+			ip = ip + 1;
+			uint8_t b = (bin[ip] & 7) + (8 * rx0);
+			uint8_t i = ((bin[ip] >> 3) & 7) + (8 * rx1);
+			uint8_t s = (bin[ip] >> 6);
+			if (i == 4 && (b & 7) == 5) {
+				ip = ip + 1;
+				uint32_t d = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+				ip = ip + 4;
+				uint8_t k = bin[ip];
+				ip = ip + 1;
+				//do not use
+				x86_64_reg_set_ip(bin, bn, ip);
+			}
+			else {
+				ip = ip + 1;
+				uint8_t k = bin[ip];
+				ip = ip + 1;
+				if (lga) {
+					x86_64_inc_op(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, 32, 0, 0) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else {
+					x86_64_inc_op(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, 32, 0, 0) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+			}
+		}
+		else if ((mrd & 7) == 5) {
+			ip = ip + 1;
+			uint32_t d = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+			ip = ip + 4;
+			uint8_t k = bin[ip];
+			ip = ip + 1;
+			if (d & 2147483648) {
+				d = ~d + 1;
+				if (lga) {
+					x86_64_inc_op(bin, bn, ((uint32_t) ip) - d, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else {
+					x86_64_inc_op(bin, bn, ip - d, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+			}
+			else {
+				if (lga) {
+					x86_64_inc_op(bin, bn, ((uint32_t) ip) + d, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else {
+					x86_64_inc_op(bin, bn, ip + d, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+			}
+		}
+		else {
+			ip = ip + 1;
+			uint8_t k = bin[ip];
+			ip = ip + 1;
+			if (lga) {
+				x86_64_inc_op(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, 0) + 138, k);
+				x86_64_reg_set_ip(bin, bn, ip);
+			}
+			else {
+				x86_64_inc_op(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, 0) + 138, k);
+				x86_64_reg_set_ip(bin, bn, ip);
+			}
+		}
+		return 0;
+	}
+	else if (bin[ip] == op0 && (bin[ip + 1] >> 3) == (8 | op1)) {
+		ip = ip + 1;
+		uint8_t mrd = (bin[ip] & 7) + (8 * rx0);
+		
+		if ((mrd & 7) == 4) {
+			ip = ip + 1;
+			uint8_t b = (bin[ip] & 7) + (8 * rx0);
+			uint8_t i = ((bin[ip] >> 3) & 7) + (8 * rx1);
+			uint8_t s = (bin[ip] >> 6);
+			ip = ip + 1;
+			uint8_t d = bin[ip];
+			ip = ip + 1;
+			uint8_t k = bin[ip];
+			ip = ip + 1;
+			if (d & 128) {
+				d = ~d + 1;
+				if (lga) {
+					x86_64_inc_op(bin, bn, x86_64_inc_addr_s32(bin, bn, b * 8, i * 8, s, d) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else {
+					x86_64_inc_op(bin, bn, x86_64_inc_addr_s64(bin, bn, b * 8, i * 8, s, d) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+			}
+			else {
+				if (lga) {
+					x86_64_inc_op(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i * 8, s, d) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else {
+					x86_64_inc_op(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i * 8, s, d) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+			}
+		}
+		else {
+			ip = ip + 1;
+			uint8_t d = bin[ip];
+			ip = ip + 1;
+			uint8_t k = bin[ip];
+			ip = ip + 1;
+			if (d & 128) {
+				d = ~d + 1;
+				if (lga) {
+					x86_64_inc_op(bin, bn, x86_64_inc_addr_s32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else {
+					x86_64_inc_op(bin, bn, x86_64_inc_addr_s64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+			}
+			else {
+				if (lga) {
+					x86_64_inc_op(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else {
+					x86_64_inc_op(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+			}
+		}
+		return 0;
+	}
+	else if (bin[ip] == op0 && (bin[ip + 1] >> 3) == (16 | op1)) {
+		ip = ip + 1;
+		uint8_t mrd = (bin[ip] & 7) + (8 * rx0);
+		
+		if ((mrd & 7) == 4) {
+			ip = ip + 1;
+			uint8_t b = (bin[ip] & 7) + (8 * rx0);
+			uint8_t i = ((bin[ip] >> 3) & 7) + (8 * rx1);
+			uint8_t s = (bin[ip] >> 6);
+			ip = ip + 1;
+			uint32_t d = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+			ip = ip + 4;
+			uint8_t k = bin[ip];
+			ip = ip + 1;
+			if (d & 2147483648) {
+				d = ~d + 1;
+				if (lga) {
+					x86_64_inc_op(bin, bn, x86_64_inc_addr_s32(bin, bn, b * 8, i * 8, s, d) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else {
+					x86_64_inc_op(bin, bn, x86_64_inc_addr_s64(bin, bn, b * 8, i * 8, s, d) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+			}
+			else {
+				if (lga) {
+					x86_64_inc_op(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i * 8, s, d) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else {
+					x86_64_inc_op(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i * 8, s, d) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+			}
+		}
+		else {
+			ip = ip + 1;
+			uint32_t d = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+			ip = ip + 4;
+			uint8_t k = bin[ip];
+			ip = ip + 1;
+			if (d & 2147483648) {
+				d = ~d + 1;
+				if (lga) {
+					x86_64_inc_op(bin, bn, x86_64_inc_addr_s32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else {
+					x86_64_inc_op(bin, bn, x86_64_inc_addr_s64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+			}
+			else {
+				if (lga) {
+					x86_64_inc_op(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else {
+					x86_64_inc_op(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+			}
+		}
+		return 0;
+	}
+	else if (bin[ip] == op0 && (bin[ip + 1] >> 3) == (24 | op1)) {
+		ip = ip + 1;
+		uint8_t mrd = (bin[ip] & 7) + (8 * rx0);
+		
+		ip = ip + 1;
+		uint8_t k = bin[ip];
+		ip = ip + 1;
+		x86_64_inc_op(bin, bn, mrd * 8, k);
+		x86_64_reg_set_ip(bin, bn, ip);
+		return 0;
+	}
+	return 1;
+}
+
+uint8_t x86_64_inc_imm(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op0, uint8_t op1, void (*x86_64_inc_op_16) (uint8_t*, uint64_t, uint64_t, uint16_t), void (*x86_64_inc_op_32) (uint8_t*, uint64_t, uint64_t, uint32_t), void (*x86_64_inc_op_64) (uint8_t*, uint64_t, uint64_t, uint32_t), uint8_t lga, uint8_t lgo, uint8_t rex, uint8_t rx0, uint8_t rx1, uint8_t rx2, uint8_t rx3) {
+	if (bin[ip] == op0 && (bin[ip + 1] >> 3) == (0 | op1)) {
+		ip = ip + 1;
+		uint8_t mrd = (bin[ip] & 7) + (8 * rx0);
+		
+		if ((mrd & 7) == 4) {
+			ip = ip + 1;
+			uint8_t b = (bin[ip] & 7) + (8 * rx0);
+			uint8_t i = ((bin[ip] >> 3) & 7) + (8 * rx1);
+			uint8_t s = (bin[ip] >> 6);
+			if (i == 4 && (b & 7) == 5) {
+				ip = ip + 1;
+				uint32_t d = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+				ip = ip + 4;
+				if (lgo) {
+					uint16_t k = bin[ip] + (bin[ip + 1] << 8);
+					ip = ip + 2;
+					//do not use
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else if (!rx3) {
+					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+					ip = ip + 4;
+					//do not use
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else {
+					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+					ip = ip + 4;
+					//do not use
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+			}
+			else {
+				ip = ip + 1;
+				if (lgo) {
+					uint16_t k = bin[ip] + (bin[ip + 1] << 8);
+					ip = ip + 2;
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else if (!rx3) {
+					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+					ip = ip + 4;
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+					ip = ip + 4;
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+		}
+		else if ((mrd & 7) == 5) {
+			ip = ip + 1;
+			uint32_t d = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+			ip = ip + 4;
+			if (lgo) {
+				uint16_t k = bin[ip] + (bin[ip + 1] << 8);
+				ip = ip + 2;
+				if (d & 2147483648) {
+					d = ~d + 1;
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, ((uint32_t) ip) - d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, ip - d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, ((uint32_t) ip) + d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, ip + d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+			else if (!rx3) {
+				uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+				ip = ip + 4;
+				if (d & 2147483648) {
+					d = ~d + 1;
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, ((uint32_t) ip) - d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, ip - d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, ((uint32_t) ip) + d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, ip + d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+			else {
+				uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+				ip = ip + 4;
+				if (d & 2147483648) {
+					d = ~d + 1;
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, ((uint32_t) ip) - d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, ip - d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, ((uint32_t) ip) + d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, ip + d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+		}
+		else {
+			ip = ip + 1;
+			if (lgo) {
+				uint16_t k = bin[ip] + (bin[ip + 1] << 8);
+				ip = ip + 2;
+				if (lga) {
+					x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, 0) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else {
+					x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, 0) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+			}
+			else if (!rx3) {
+				uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+				ip = ip + 4;
+				if (lga) {
+					x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, 0) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else {
+					x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, 0) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+			}
+			else {
+				uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+				ip = ip + 4;
+				if (lga) {
+					x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, 0) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else {
+					x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, 0) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+			}
+		}
+		return 0;
+	}
+	else if (bin[ip] == op0 && (bin[ip + 1] >> 3) == (8 | op1)) {
+		ip = ip + 1;
+		uint8_t mrd = (bin[ip] & 7) + (8 * rx0);
+		
+		if ((mrd & 7) == 4) {
+			ip = ip + 1;
+			uint8_t b = (bin[ip] & 7) + (8 * rx0);
+			uint8_t i = ((bin[ip] >> 3) & 7) + (8 * rx1);
+			uint8_t s = (bin[ip] >> 6);
+			
+			ip = ip + 1;
+			uint8_t d = bin[ip];
+			ip = ip + 1;
+			if (d & 128) {
+				d = ~d + 1;
+				if (lgo) {
+					uint16_t k = bin[ip] + (bin[ip + 1] << 8);
+					ip = ip + 2;
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_s32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_s64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else if (!rx3) {
+					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+					ip = ip + 4;
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_s32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_s64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+					ip = ip + 4;
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_s32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_s64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+			else {
+				if (lgo) {
+					uint16_t k = bin[ip] + (bin[ip + 1] << 8);
+					ip = ip + 2;
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else if (!rx3) {
+					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+					ip = ip + 4;
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+					ip = ip + 4;
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}	
+		}
+		else {
+			ip = ip + 1;
+			uint8_t d = bin[ip];
+			ip = ip + 1;
+			if (d & 128) {
+				d = ~d + 1;
+				if (lgo) {
+					uint16_t k = bin[ip] + (bin[ip + 1] << 8);
+					ip = ip + 2;
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_s32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_s64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else if (!rx3) {
+					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+					ip = ip + 4;
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_s32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_s64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+					ip = ip + 4;
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_s32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_s64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+			else {
+				if (lgo) {
+					uint16_t k = bin[ip] + (bin[ip + 1] << 8);
+					ip = ip + 2;
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else if (!rx3) {
+					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+					ip = ip + 4;
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+					ip = ip + 4;
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+		}
+		return 0;
+	}
+	else if (bin[ip] == op0 && (bin[ip + 1] >> 3) == (16 | op1)) {
+		ip = ip + 1;
+		uint8_t mrd = (bin[ip] & 7) + (8 * rx0);
+		
+		if ((mrd & 7) == 4) {
+			ip = ip + 1;
+			uint8_t b = (bin[ip] & 7) + (8 * rx0);
+			uint8_t i = ((bin[ip] >> 3) & 7) + (8 * rx1);
+			uint8_t s = (bin[ip] >> 6);
+			ip = ip + 1;
+			uint32_t d = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+			ip = ip + 4;
+			if (d & 2147483648) {
+				d = ~d + 1;
+				if (lgo) {
+					uint16_t k = bin[ip] + (bin[ip + 1] << 8);
+					ip = ip + 2;
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_s32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_s64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else if (!rx3) {
+					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+					ip = ip + 4;
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_s32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_s64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+					ip = ip + 4;
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_s32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_s64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+			else {
+				if (lgo) {
+					uint16_t k = bin[ip] + (bin[ip + 1] << 8);
+					ip = ip + 2;
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else if (!rx3) {
+					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+					ip = ip + 4;
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+					ip = ip + 4;
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+		}
+		else {
+			ip = ip + 1;
+			uint32_t d = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+			ip = ip + 4;
+			if (d & 2147483648) {
+				d = ~d + 1;
+				if (lgo) {
+					uint16_t k = bin[ip] + (bin[ip + 1] << 8);
+					ip = ip + 2;
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_s32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_s64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else if (!rx3) {
+					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+					ip = ip + 4;
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_s32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_s64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+					ip = ip + 4;
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_s32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_s64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+			else {
+				if (lgo) {
+					uint16_t k = bin[ip] + (bin[ip + 1] << 8);
+					ip = ip + 2;
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else if (!rx3) {
+					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+					ip = ip + 4;
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+					ip = ip + 4;
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+		}
+		return 0;
+	}
+	else if (bin[ip] == op0 && (bin[ip + 1] >> 3) == (24 | op1)) {
+		ip = ip + 1;
+		uint8_t mrd = (bin[ip] & 7) + (8 * rx0);
+		
+		ip = ip + 1;
+		if (lgo) {
+			uint16_t k = bin[ip] + (bin[ip + 1] << 8);
+			ip = ip + 2;
+			x86_64_inc_op_16(bin, bn, mrd * 8, k);
+			x86_64_reg_set_ip(bin, bn, ip);
+		}
+		else if (!rx3) {
+			uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+			ip = ip + 4;
+			x86_64_inc_op_32(bin, bn, mrd * 8, k);
+			x86_64_reg_set_ip(bin, bn, ip);
+		}
+		else {
+			uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+			ip = ip + 4;
+			x86_64_inc_op_64(bin, bn, mrd * 8, k);
+			x86_64_reg_set_ip(bin, bn, ip);
+		}
+		return 0;
+	}
+	return 1;
+}
+
+uint8_t x86_64_inc_k81(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op0, uint8_t op1, void (*x86_64_inc_op_16) (uint8_t*, uint64_t, uint64_t, uint16_t), void (*x86_64_inc_op_32) (uint8_t*, uint64_t, uint64_t, uint32_t), void (*x86_64_inc_op_64) (uint8_t*, uint64_t, uint64_t, uint32_t), uint8_t lga, uint8_t lgo, uint8_t rex, uint8_t rx0, uint8_t rx1, uint8_t rx2, uint8_t rx3) {
+	if (bin[ip] == op0 && (bin[ip + 1] >> 3) == (0 | op1)) {
+		ip = ip + 1;
+		uint8_t mrd = (bin[ip] & 7) + (8 * rx0);
+		
+		if ((mrd & 7) == 4) {
+			ip = ip + 1;
+			uint8_t b = (bin[ip] & 7) + (8 * rx0);
+			uint8_t i = ((bin[ip] >> 3) & 7) + (8 * rx1);
+			uint8_t s = (bin[ip] >> 6);
+			if (i == 4 && (b & 7) == 5) {
+				ip = ip + 1;
+				uint32_t d = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+				ip = ip + 4;
+				uint8_t k = bin[ip];
+				ip = ip + 1;
+				if (lgo) {
+					//do not use
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else if (!rx3) {
+					//do not use
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else {
+					//do not use
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+			}
+			else {
+				ip = ip + 1;
+				uint8_t k = bin[ip];
+				ip = ip + 1;
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else if (!rx3) {
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+		}
+		else if ((mrd & 7) == 5) {
+			ip = ip + 1;
+			uint32_t d = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+			ip = ip + 4;
+			uint8_t k = bin[ip];
+			ip = ip + 1;
+			if (d & 2147483648) {
+				d = ~d + 1;
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, ((uint32_t) ip) - d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, ip - d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else if (!rx3) {
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, ((uint32_t) ip) - d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, ip - d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, ((uint32_t) ip) - d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, ip - d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+			else {
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, ((uint32_t) ip) + d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, ip + d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else if (!rx3) {
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, ((uint32_t) ip) + d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, ip + d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, ((uint32_t) ip) + d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, ip + d, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+		}
+		else {
+			ip = ip + 1;
+			uint8_t k = bin[ip];
+			ip = ip + 1;
+			if (lgo) {
+				if (lga) {
+					x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, 0) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else {
+					x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, 0) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+			}
+			else if (!rx3) {
+				if (lga) {
+					x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, 0) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else {
+					x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, 0) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+			}
+			else {
+				if (lga) {
+					x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, 0) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+				else {
+					x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, 0) + 138, k);
+					x86_64_reg_set_ip(bin, bn, ip);
+				}
+			}
+		}
+		return 0;
+	}
+	else if (bin[ip] == op0 && (bin[ip + 1] >> 3) == (8 | op1)) {
+		ip = ip + 1;
+		uint8_t mrd = (bin[ip] & 7) + (8 * rx0);
+		
+		if ((mrd & 7) == 4) {
+			ip = ip + 1;
+			uint8_t b = (bin[ip] & 7) + (8 * rx0);
+			uint8_t i = ((bin[ip] >> 3) & 7) + (8 * rx1);
+			uint8_t s = (bin[ip] >> 6);
+			
+			ip = ip + 1;
+			uint8_t d = bin[ip];
+			ip = ip + 1;
+			uint8_t k = bin[ip];
+			ip = ip + 1;
+			if (d & 128) {
+				d = ~d + 1;
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_s32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_s64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else if (!rx3) {
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_s32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_s64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_s32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_s64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+			else {
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else if (!rx3) {
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}	
+		}
+		else {
+			ip = ip + 1;
+			uint8_t d = bin[ip];
+			ip = ip + 1;
+			uint8_t k = bin[ip];
+			ip = ip + 1;
+			if (d & 128) {
+				d = ~d + 1;
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_s32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_s64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else if (!rx3) {
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_s32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_s64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_s32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_s64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+			else {
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else if (!rx3) {
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+		}
+		return 0;
+	}
+	else if (bin[ip] == op0 && (bin[ip + 1] >> 3) == (16 | op1)) {
+		ip = ip + 1;
+		uint8_t mrd = (bin[ip] & 7) + (8 * rx0);
+		
+		if ((mrd & 7) == 4) {
+			ip = ip + 1;
+			uint8_t b = (bin[ip] & 7) + (8 * rx0);
+			uint8_t i = ((bin[ip] >> 3) & 7) + (8 * rx1);
+			uint8_t s = (bin[ip] >> 6);
+			ip = ip + 1;
+			uint32_t d = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+			ip = ip + 4;
+			uint8_t k = bin[ip];
+			ip = ip + 1;
+			if (d & 2147483648) {
+				d = ~d + 1;
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_s32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_s64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else if (!rx3) {
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_s32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_s64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_s32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_s64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+			else {
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else if (!rx3) {
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i, s, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+		}
+		else {
+			ip = ip + 1;
+			uint32_t d = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+			ip = ip + 4;
+			uint8_t k = bin[ip];
+			ip = ip + 1;
+			if (d & 2147483648) {
+				d = ~d + 1;
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_s32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_s64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else if (!rx3) {
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_s32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_s64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_s32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_s64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+			else {
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else if (!rx3) {
+					if (lga) {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, d) + 138, k);
+						x86_64_reg_set_ip(bin, bn, ip);
+					}
+				}
+			}
+		}
+		return 0;
+	}
+	else if (bin[ip] == op0 && (bin[ip + 1] >> 3) == (24 | op1)) {
+		ip = ip + 1;
+		uint8_t mrd = (bin[ip] & 7) + (8 * rx0);
+		
+		ip = ip + 1;
+		uint8_t k = bin[ip];
+		ip = ip + 1;
+		if (lgo) {
+			x86_64_inc_op_16(bin, bn, mrd * 8, k);
+			x86_64_reg_set_ip(bin, bn, ip);
+		}
+		else if (!rx3) {
+			x86_64_inc_op_32(bin, bn, mrd * 8, k);
+			x86_64_reg_set_ip(bin, bn, ip);
+		}
+		else {
+			x86_64_inc_op_64(bin, bn, mrd * 8, k);
+			x86_64_reg_set_ip(bin, bn, ip);
+		}
+		return 0;
+	}
+	return 1;
+}
+
 uint8_t x86_64_inc_stck(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op, void (*x86_64_inc_op_16) (uint8_t*, uint64_t, uint8_t), void (*x86_64_inc_op_64) (uint8_t*, uint64_t, uint8_t), uint8_t lga, uint8_t lgo, uint8_t rex, uint8_t rx0, uint8_t rx1, uint8_t rx2, uint8_t rx3) {
 	if ((bin[ip] & 248) == op) {
 		uint8_t reg = (bin[ip] & 7) + (8 * rx0); 
@@ -15734,6 +17186,78 @@ void x86_64_inc(uint8_t* bin, uint64_t bn, uint64_t ip) {
 	}
 	if (eo) {
 		eo = x86_64_inc_byt_imm(bin, bn, ip, 127, x86_64_inc_jg_s8, x86_64_inc_jg_u8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_k80(bin, bn, ip, 128, 0, x86_64_inc_add_imm_8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_k80(bin, bn, ip, 128, 1, x86_64_inc_or_imm_8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_k80(bin, bn, ip, 128, 2, x86_64_inc_adc_imm_8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_k80(bin, bn, ip, 128, 3, x86_64_inc_sbb_imm_8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_k80(bin, bn, ip, 128, 4, x86_64_inc_and_imm_8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_k80(bin, bn, ip, 128, 5, x86_64_inc_sub_imm_8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_k80(bin, bn, ip, 128, 6, x86_64_inc_xor_imm_8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_k80(bin, bn, ip, 128, 7, x86_64_inc_cmp_imm_8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_imm(bin, bn, ip, 129, 0, x86_64_inc_add_imm_16, x86_64_inc_add_imm_32, x86_64_inc_add_imm_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_imm(bin, bn, ip, 129, 1, x86_64_inc_or_imm_16, x86_64_inc_or_imm_32, x86_64_inc_or_imm_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_imm(bin, bn, ip, 129, 2, x86_64_inc_adc_imm_16, x86_64_inc_adc_imm_32, x86_64_inc_adc_imm_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_imm(bin, bn, ip, 129, 3, x86_64_inc_sbb_imm_16, x86_64_inc_sbb_imm_32, x86_64_inc_sbb_imm_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_imm(bin, bn, ip, 129, 4, x86_64_inc_and_imm_16, x86_64_inc_and_imm_32, x86_64_inc_and_imm_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_imm(bin, bn, ip, 129, 5, x86_64_inc_sub_imm_16, x86_64_inc_sub_imm_32, x86_64_inc_sub_imm_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_imm(bin, bn, ip, 129, 6, x86_64_inc_xor_imm_16, x86_64_inc_xor_imm_32, x86_64_inc_xor_imm_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_imm(bin, bn, ip, 129, 7, x86_64_inc_cmp_imm_16, x86_64_inc_cmp_imm_32, x86_64_inc_cmp_imm_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_k81(bin, bn, ip, 131, 0, x86_64_inc_add_imm_16, x86_64_inc_add_imm_32, x86_64_inc_add_imm_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_k81(bin, bn, ip, 131, 1, x86_64_inc_or_imm_16, x86_64_inc_or_imm_32, x86_64_inc_or_imm_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_k81(bin, bn, ip, 131, 2, x86_64_inc_adc_imm_16, x86_64_inc_adc_imm_32, x86_64_inc_adc_imm_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_k81(bin, bn, ip, 131, 3, x86_64_inc_sbb_imm_16, x86_64_inc_sbb_imm_32, x86_64_inc_sbb_imm_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_k81(bin, bn, ip, 131, 4, x86_64_inc_and_imm_16, x86_64_inc_and_imm_32, x86_64_inc_and_imm_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_k81(bin, bn, ip, 131, 5, x86_64_inc_sub_imm_16, x86_64_inc_sub_imm_32, x86_64_inc_sub_imm_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_k81(bin, bn, ip, 131, 6, x86_64_inc_xor_imm_16, x86_64_inc_xor_imm_32, x86_64_inc_xor_imm_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_k81(bin, bn, ip, 131, 7, x86_64_inc_cmp_imm_16, x86_64_inc_cmp_imm_32, x86_64_inc_cmp_imm_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
 		printf("[error] unknown instruction\n");
