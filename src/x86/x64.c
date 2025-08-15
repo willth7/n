@@ -13285,6 +13285,182 @@ void x86_64_inc_cmp_imm_64(uint8_t* bin, uint64_t bn, uint64_t dst, uint32_t imm
 	}
 }
 
+void x86_64_inc_xchg_reg_8(uint8_t* bin, uint64_t bn, uint64_t dst, uint64_t src) {
+	if (dst >= bn || src >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		uint8_t reg = bin[dst];
+		bin[dst] = bin[src];
+		bin[src] = reg;
+	}
+}
+
+void x86_64_inc_xchg_reg_16(uint8_t* bin, uint64_t bn, uint64_t dst, uint64_t src) {
+	if (dst >= bn || src >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		uint8_t reg = bin[dst];
+		bin[dst] = bin[src];
+		bin[src] = reg;
+		
+		reg = bin[dst + 1];
+		bin[dst + 1] = bin[src + 1];
+		bin[src + 1] = reg;
+	}
+}
+
+void x86_64_inc_xchg_reg_32(uint8_t* bin, uint64_t bn, uint64_t dst, uint64_t src) {
+	if (dst >= bn || src >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		uint8_t reg = bin[dst];
+		bin[dst] = bin[src];
+		bin[src] = reg;
+		
+		reg = bin[dst + 1];
+		bin[dst + 1] = bin[src + 1];
+		bin[src + 1] = reg;
+		
+		reg = bin[dst + 2];
+		bin[dst + 2] = bin[src + 2];
+		bin[src + 2] = reg;
+		
+		reg = bin[dst + 3];
+		bin[dst + 3] = bin[src + 3];
+		bin[src + 3] = reg;
+	}
+}
+
+void x86_64_inc_xchg_reg_64(uint8_t* bin, uint64_t bn, uint64_t dst, uint64_t src) {
+	if (dst >= bn || src >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		uint8_t reg = bin[dst];
+		bin[dst] = bin[src];
+		bin[src] = reg;
+		
+		reg = bin[dst + 1];
+		bin[dst + 1] = bin[src + 1];
+		bin[src + 1] = reg;
+		
+		reg = bin[dst + 2];
+		bin[dst + 2] = bin[src + 2];
+		bin[src + 2] = reg;
+		
+		reg = bin[dst + 3];
+		bin[dst + 3] = bin[src + 3];
+		bin[src + 3] = reg;
+		
+		reg = bin[dst + 4];
+		bin[dst + 4] = bin[src + 4];
+		bin[src + 4] = reg;
+		
+		reg = bin[dst + 5];
+		bin[dst + 5] = bin[src + 5];
+		bin[src + 5] = reg;
+		
+		reg = bin[dst + 6];
+		bin[dst + 6] = bin[src + 6];
+		bin[src + 6] = reg;
+		
+		reg = bin[dst + 7];
+		bin[dst + 7] = bin[src + 7];
+		bin[src + 7] = reg;
+	}
+}
+
+void x86_64_inc_mov_reg_8(uint8_t* bin, uint64_t bn, uint64_t dst, uint64_t src) {
+	if (dst >= bn || src >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		bin[dst] = bin[src];
+	}
+}
+
+void x86_64_inc_mov_reg_16(uint8_t* bin, uint64_t bn, uint64_t dst, uint64_t src) {
+	if (dst >= bn || src >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		bin[dst] = bin[src];
+		bin[dst + 1] = bin[src + 1];
+	}
+}
+
+void x86_64_inc_mov_reg_32(uint8_t* bin, uint64_t bn, uint64_t dst, uint64_t src) {
+	if (dst >= bn || src >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		bin[dst] = bin[src];
+		bin[dst + 1] = bin[src + 1];
+		bin[dst + 2] = bin[src + 2];
+		bin[dst + 3] = bin[src + 3];
+	}
+}
+
+void x86_64_inc_mov_reg_64(uint8_t* bin, uint64_t bn, uint64_t dst, uint64_t src) {
+	if (dst >= bn || src >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		bin[dst] = bin[src];
+		bin[dst + 1] = bin[src + 1];
+		bin[dst + 2] = bin[src + 2];
+		bin[dst + 3] = bin[src + 3];
+		bin[dst + 4] = bin[src + 4];
+		bin[dst + 5] = bin[src + 5];
+		bin[dst + 6] = bin[src + 6];
+		bin[dst + 7] = bin[src + 7];
+	}
+}
+
+void x86_64_inc_lea_reg_16(uint8_t* bin, uint64_t bn, uint64_t dst, uint64_t src) {
+	if (dst >= bn || src >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		src = src - 138;
+		bin[dst] = src;
+		bin[dst + 1] = src >> 8;
+	}
+}
+
+void x86_64_inc_lea_reg_32(uint8_t* bin, uint64_t bn, uint64_t dst, uint64_t src) {
+	if (dst >= bn || src >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		src = src - 138;
+		bin[dst] = src;
+		bin[dst + 1] = src >> 8;
+		bin[dst + 2] = src >> 16;
+		bin[dst + 3] = src >> 24;
+	}
+}
+
+void x86_64_inc_lea_reg_64(uint8_t* bin, uint64_t bn, uint64_t dst, uint64_t src) {
+	if (dst >= bn || src >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		src = src - 138;
+		bin[dst] = src;
+		bin[dst + 1] = src >> 8;
+		bin[dst + 2] = src >> 16;
+		bin[dst + 3] = src >> 24;
+		bin[dst + 4] = src >> 32;
+		bin[dst + 5] = src >> 40;
+		bin[dst + 6] = src >> 48;
+		bin[dst + 7] = src >> 56;
+	}
+}
+
 void x86_64_inc_push_reg_16(uint8_t* bin, uint64_t bn, uint8_t reg) {
 	uint64_t sp = x86_64_reg_get_sp(bin) + 138;
 	if ((sp - 2) >= bn || (sp - 2) < 138) {
@@ -17258,6 +17434,27 @@ void x86_64_inc(uint8_t* bin, uint64_t bn, uint64_t ip) {
 	}
 	if (eo) {
 		eo = x86_64_inc_k81(bin, bn, ip, 131, 7, x86_64_inc_cmp_imm_16, x86_64_inc_cmp_imm_32, x86_64_inc_cmp_imm_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_r81(bin, bn, ip, 134, x86_64_inc_xchg_reg_8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_rg1(bin, bn, ip, 135, x86_64_inc_xchg_reg_16, x86_64_inc_xchg_reg_32, x86_64_inc_xchg_reg_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_r80(bin, bn, ip, 136, x86_64_inc_mov_reg_8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_rg0(bin, bn, ip, 137, x86_64_inc_mov_reg_16, x86_64_inc_mov_reg_32, x86_64_inc_mov_reg_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_r81(bin, bn, ip, 138, x86_64_inc_mov_reg_8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_rg1(bin, bn, ip, 139, x86_64_inc_mov_reg_16, x86_64_inc_mov_reg_32, x86_64_inc_mov_reg_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_rg1(bin, bn, ip, 141, x86_64_inc_lea_reg_16, x86_64_inc_lea_reg_32, x86_64_inc_lea_reg_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
 		printf("[error] unknown instruction\n");
