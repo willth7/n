@@ -61,7 +61,7 @@ void x86_64_reg_print(uint8_t* bin) {
 	printf("rdx        :edx  :dx   ");
 	printf("    rsi        :esi  :si     \n");
 	printf("%02x %02x %02x %02x:%02x %02x:%02x:%02x", bin[23], bin[22], bin[21], bin[20], bin[19], bin[18], bin[17], bin[16]);
-	printf("    %02x %02x %02x %02x:%02x %02x:%02x:%02x  \n", bin[55], bin[54], bin[53], bin[52], bin[51], bin[50], bin[49], bin[58]);
+	printf("    %02x %02x %02x %02x:%02x %02x:%02x:%02x  \n", bin[55], bin[54], bin[53], bin[52], bin[51], bin[50], bin[49], bin[48]);
 	printf("                  dh:dl");
 	printf("                        :sil \n");
 	printf("rbx        :ebx  :bx   ");
@@ -96,41 +96,49 @@ void x86_64_reg_print(uint8_t* bin) {
 	printf("                      :r15b\n\n");
 }
 
-void x86_64_print_stack(uint8_t* bin, uint64_t* bn) {
-	printf("%02x %02x %02x %02x %02x %02x %02x %02x                      ", bin[*bn], bin[*bn + 1], bin[*bn + 2], bin[*bn + 3], bin[*bn + 4], bin[*bn + 5], bin[*bn + 6], bin[*bn + 7]);
-	for (uint8_t i = 0; i < 8; i++) {
-		if (bin[*bn + i] >= 32 && bin[*bn + i] < 127) {
-			printf("%c", bin[*bn + i]);
+void x86_64_print_stack(uint8_t* bin, uint64_t* ip, uint64_t bn) {
+	for (uint8_t i = 0; (i < 8) && (i < (bn - *ip)); i++) {
+		printf("%02x ", bin[*ip + i]);
+	}
+	if ((bn - *ip) < 8) {
+		for (uint8_t i = 8 - (bn - *ip); i > 0; i--) {
+			printf("   ");
 		}
-		else if (bin[*bn + i] == 0) {
+	}
+	printf("                     ");
+	for (uint8_t i = 0; (i < 8) && (i < (bn - *ip)); i++) {
+		if (bin[*ip + i] >= 32 && bin[*ip + i] < 127) {
+			printf("%c", bin[*ip + i]);
+		}
+		else if (bin[*ip + i] == 0) {
 			printf("\\0");
 		}
-		else if (bin[*bn + i] == 7) {
+		else if (bin[*ip + i] == 7) {
 			printf("\\a");
 		}
-		else if (bin[*bn + i] == 8) {
+		else if (bin[*ip + i] == 8) {
 			printf("\\b");
 		}
-		else if (bin[*bn + i] == 9) {
+		else if (bin[*ip + i] == 9) {
 			printf("\\t");
 		}
-		else if (bin[*bn + i] == 10) {
+		else if (bin[*ip + i] == 10) {
 			printf("\\n");
 		}
-		else if (bin[*bn + i] == 11) {
+		else if (bin[*ip + i] == 11) {
 			printf("\\v");
 		}
-		else if (bin[*bn + i] == 12) {
+		else if (bin[*ip + i] == 12) {
 			printf("\\f");
 		}
-		else if (bin[*bn + i] == 13) {
+		else if (bin[*ip + i] == 13) {
 			printf("\\r");
 		}
-		else if (bin[*bn + i] == 27) {
+		else if (bin[*ip + i] == 27) {
 			printf("\\e");
 		}
 	}
-	*bn = *bn + 8;
+	*ip = *ip + 8;
 }
 
 int8_t* x86_64_dec_r8(uint8_t r) {
@@ -11530,12 +11538,31 @@ void x86_64_inc_add_imm_64(uint8_t* bin, uint64_t bn, uint64_t dst, uint32_t imm
 		bin[dst + 3] = bin[dst + 3] + ((imm >> 24) & 255) + car;
 		car = cf;
 		
-		cf = 0;
-		pf = x86_64_parity_flag(car, pf);
-		zf = (!car && zf) << 6;
+		cf = ((bin[dst + 4] + car) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 4] + car, pf);
+		zf = (!(bin[dst + 4] + car) && zf) << 6;
+		bin[dst + 4] = bin[dst + 4] + car;
+		car = cf;
+		
+		cf = ((bin[dst + 5] + car) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 5] + car, pf);
+		zf = (!(bin[dst + 5] + car) && zf) << 6;
+		bin[dst + 5] = bin[dst + 5] + car;
+		car = cf;
+		
+		cf = ((bin[dst + 6] + car) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 6] + car, pf);
+		zf = (!(bin[dst + 6] + car) && zf) << 6;
+		bin[dst + 6] = bin[dst + 6] + car;
+		car = cf;
+		
+		cf = ((bin[dst + 7] + car) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 7] + car, pf);
+		zf = (!(bin[dst + 7] + car) && zf) << 6;
 		uint8_t sf = bin[dst + 7] & 128;
 		uint8_t of = 0;
-		bin[dst + 4] = car;
+		bin[dst + 7] = bin[dst + 7] + car;
+		car = cf;
 		
 		bin[136] = bin[136] | cf;
 		bin[136] = bin[136] | pf;
@@ -12124,12 +12151,31 @@ void x86_64_inc_adc_imm_64(uint8_t* bin, uint64_t bn, uint64_t dst, uint32_t imm
 		bin[dst + 3] = bin[dst + 3] + ((imm >> 24) & 255) + car;
 		car = cf;
 		
-		cf = 0;
-		pf = x86_64_parity_flag(car, pf);
-		zf = (!car && zf) << 6;
+		cf = ((bin[dst + 4] + car) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 4] + car, pf);
+		zf = (!(bin[dst + 4] + car) && zf) << 6;
+		bin[dst + 4] = bin[dst + 4] + car;
+		car = cf;
+		
+		cf = ((bin[dst + 5] + car) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 5] + car, pf);
+		zf = (!(bin[dst + 5] + car) && zf) << 6;
+		bin[dst + 5] = bin[dst + 5] + car;
+		car = cf;
+		
+		cf = ((bin[dst + 6] + car) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 6] + car, pf);
+		zf = (!(bin[dst + 6] + car) && zf) << 6;
+		bin[dst + 6] = bin[dst + 6] + car;
+		car = cf;
+		
+		cf = ((bin[dst + 7] + car) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 7] + car, pf);
+		zf = (!(bin[dst + 7] + car) && zf) << 6;
 		uint8_t sf = bin[dst + 7] & 128;
 		uint8_t of = 0;
-		bin[dst + 4] = car;
+		bin[dst + 7] = bin[dst + 7] + car;
+		car = cf;
 		
 		bin[136] = bin[136] | cf;
 		bin[136] = bin[136] | pf;
@@ -12446,12 +12492,30 @@ void x86_64_inc_sbb_imm_64(uint8_t* bin, uint64_t bn, uint64_t dst, uint32_t imm
 		bin[dst + 3] = bin[dst + 3] + ~((imm >> 24) & 255) + bor;
 		bor = !cf;
 		
-		cf = 0;
-		pf = x86_64_parity_flag(bor, pf);
-		zf = (!bor && zf) << 6;
-		uint8_t sf = bin[dst + 7] & 128;
-		uint8_t of = 0;
-		bin[dst + 4] = bor;
+		cf = ((bin[dst + 4] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 4] + 255 + bor, pf);
+		zf = (!((bin[dst + 4] + 255 + bor) & 255) && zf) << 6;
+		bin[dst + 4] = bin[dst + 4] + 255 + bor;
+		bor = cf;
+		
+		cf = ((bin[dst + 5] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 5] + 255 + bor, pf);
+		zf = (!((bin[dst + 5] + 255 + bor) & 255) && zf) << 6;
+		bin[dst + 5] = bin[dst + 5] + 255 + bor;
+		bor = cf;
+		
+		cf = ((bin[dst + 6] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 6] + 255 + bor, pf);
+		zf = (!((bin[dst + 6] + 255 + bor) & 255) && zf) << 6;
+		bin[dst + 6] = bin[dst + 6] + 255 + bor;
+		bor = cf;
+		
+		cf = ((bin[dst + 7] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 7] + 255 + bor, pf);
+		zf = (!((bin[dst + 7] + 255 + bor) & 255) && zf) << 6;
+		uint8_t sf = (bin[dst + 7] + 255 + bor) & 128;
+		uint8_t of = ((bin[dst + 7] & 128) ^ 1) << 3;
+		bin[dst + 7] = bin[dst + 7] + 255 + bor;
 		
 		bin[136] = bin[136] | cf;
 		bin[136] = bin[136] | pf;
@@ -13032,12 +13096,30 @@ void x86_64_inc_sub_imm_64(uint8_t* bin, uint64_t bn, uint64_t dst, uint32_t imm
 		bin[dst + 3] = bin[dst + 3] + ~((imm >> 24) & 255) + bor;
 		bor = !cf;
 		
-		cf = 0;
-		pf = x86_64_parity_flag(bor, pf);
-		zf = (!bor && zf) << 6;
-		uint8_t sf = bin[dst + 7] & 128;
-		uint8_t of = 0;
-		bin[dst + 4] = bor;
+		cf = ((bin[dst + 4] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 4] + 255 + bor, pf);
+		zf = (!((bin[dst + 4] + 255 + bor) & 255) && zf) << 6;
+		bin[dst + 4] = bin[dst + 4] + 255 + bor;
+		bor = cf;
+		
+		cf = ((bin[dst + 5] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 5] + 255 + bor, pf);
+		zf = (!((bin[dst + 5] + 255 + bor) & 255) && zf) << 6;
+		bin[dst + 5] = bin[dst + 5] + 255 + bor;
+		bor = cf;
+		
+		cf = ((bin[dst + 6] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 6] + 255 + bor, pf);
+		zf = (!((bin[dst + 6] + 255 + bor) & 255) && zf) << 6;
+		bin[dst + 6] = bin[dst + 6] + 255 + bor;
+		bor = cf;
+		
+		cf = ((bin[dst + 7] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 7] + 255 + bor, pf);
+		zf = (!((bin[dst + 7] + 255 + bor) & 255) && zf) << 6;
+		uint8_t sf = (bin[dst + 7] + 255 + bor) & 128;
+		uint8_t of = ((bin[dst + 7] & 128) ^ 1) << 3;
+		bin[dst + 7] = bin[dst + 7] + 255 + bor;
 		
 		bin[136] = bin[136] | cf;
 		bin[136] = bin[136] | pf;
@@ -13592,12 +13674,26 @@ void x86_64_inc_cmp_imm_64(uint8_t* bin, uint64_t bn, uint64_t dst, uint32_t imm
 		zf = (!(bin[dst + 3] + ~((imm >> 24) & 255) + bor) && zf) << 6;
 		bor = !cf;
 		
-		cf = 0;
-		pf = x86_64_parity_flag(bor, pf);
-		zf = (!bor && zf) << 6;
-		uint8_t sf = bin[dst + 7] & 128;
-		uint8_t of = 0;
-		bin[dst + 4] = bor;
+		cf = ((bin[dst + 4] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 4] + 255 + bor, pf);
+		zf = (!((bin[dst + 4] + 255 + bor) & 255) && zf) << 6;
+		bor = cf;
+		
+		cf = ((bin[dst + 5] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 5] + 255 + bor, pf);
+		zf = (!((bin[dst + 5] + 255 + bor) & 255) && zf) << 6;
+		bor = cf;
+		
+		cf = ((bin[dst + 6] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 6] + 255 + bor, pf);
+		zf = (!((bin[dst + 6] + 255 + bor) & 255) && zf) << 6;
+		bor = cf;
+		
+		cf = ((bin[dst + 7] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 7] + 255 + bor, pf);
+		zf = (!((bin[dst + 7] + 255 + bor) & 255) && zf) << 6;
+		uint8_t sf = (bin[dst + 7] + 255 + bor) & 128;
+		uint8_t of = ((bin[dst + 7] & 128) ^ 1) << 3;
 		
 		bin[136] = bin[136] | cf;
 		bin[136] = bin[136] | pf;
@@ -15823,14 +15919,401 @@ void x86_64_inc_sar_cl_64(uint8_t* bin, uint64_t bn, uint64_t dst) {
 	}
 }
 
-void x86_64_inc_jo_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
+void x86_64_inc_not_reg_8(uint8_t* bin, uint64_t bn, uint64_t dst) {
+	if (dst >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		bin[dst] = ~bin[dst];
+	}
+}
+
+void x86_64_inc_not_reg_16(uint8_t* bin, uint64_t bn, uint64_t dst) {
+	if (dst >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		bin[dst] = ~bin[dst];
+		bin[dst + 1] = ~bin[dst + 1];
+	}
+}
+
+void x86_64_inc_not_reg_32(uint8_t* bin, uint64_t bn, uint64_t dst) {
+	if (dst >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		bin[dst] = ~bin[dst];
+		bin[dst + 1] = ~bin[dst + 1];
+		bin[dst + 2] = ~bin[dst + 2];
+		bin[dst + 3] = ~bin[dst + 3];
+	}
+}
+
+void x86_64_inc_not_reg_64(uint8_t* bin, uint64_t bn, uint64_t dst) {
+	if (dst >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		bin[dst] = ~bin[dst];
+		bin[dst + 1] = ~bin[dst + 1];
+		bin[dst + 2] = ~bin[dst + 2];
+		bin[dst + 3] = ~bin[dst + 3];
+		bin[dst + 4] = ~bin[dst + 4];
+		bin[dst + 5] = ~bin[dst + 5];
+		bin[dst + 6] = ~bin[dst + 6];
+		bin[dst + 7] = ~bin[dst + 7];
+	}
+}
+
+void x86_64_inc_neg_reg_8(uint8_t* bin, uint64_t bn, uint64_t dst) {
+	if (dst >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		bin[136] = bin[136] & 42;
+		bin[137] = bin[137] & 247;
+		
+		uint8_t cf = ((~bin[dst] + 1) & 256) >> 8;
+		uint8_t pf = x86_64_parity_flag(~bin[dst] + 1, 1);
+		uint8_t af = ((~bin[dst] & 15) + 1) & 16;
+		uint8_t zf = !(~bin[dst] + 1) << 6;
+		uint8_t sf = (~bin[dst] + 1) & 128;
+		uint8_t of = !!(bin[dst] & 128) << 3;
+		bin[dst] = ~bin[dst] + 1;
+		
+		bin[136] = bin[136] | cf;
+		bin[136] = bin[136] | pf;
+		bin[136] = bin[136] | af;
+		bin[136] = bin[136] | sf;
+		bin[136] = bin[136] | zf;
+		bin[137] = bin[137] | of;
+	}
+}
+
+void x86_64_inc_neg_reg_16(uint8_t* bin, uint64_t bn, uint64_t dst) {
+	if (dst >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		bin[136] = bin[136] & 42;
+		bin[137] = bin[137] & 247;
+		
+		uint8_t cf = ((~bin[dst] + 1) & 256) >> 8;
+		uint8_t pf = x86_64_parity_flag(~bin[dst] + 1, 1);
+		uint8_t af = ((bin[dst] & 15) + (~bin[dst] & 15) + 1) & 16;
+		uint8_t zf = !(~bin[dst] + 1) << 6;
+		bin[dst] = ~bin[dst] + 1;
+		uint8_t bor = !cf;
+		
+		cf = ((~bin[dst + 1] + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(~bin[dst + 1] + bor, pf);
+		zf = (!(~bin[dst + 1] + bor) && zf) << 6;
+		uint8_t sf = (~bin[dst + 1] + bor) & 128;
+		uint8_t of = !!(bin[dst + 1] & 128) << 3;
+		bin[dst + 1] = ~bin[dst + 1] + bor;
+		
+		bin[136] = bin[136] | cf;
+		bin[136] = bin[136] | pf;
+		bin[136] = bin[136] | af;
+		bin[136] = bin[136] | sf;
+		bin[136] = bin[136] | zf;
+		bin[137] = bin[137] | of;
+	}
+}
+
+void x86_64_inc_neg_reg_32(uint8_t* bin, uint64_t bn, uint64_t dst) {
+	if (dst >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		bin[136] = bin[136] & 42;
+		bin[137] = bin[137] & 247;
+		
+		uint8_t cf = ((~bin[dst] + 1) & 256) >> 8;
+		uint8_t pf = x86_64_parity_flag(~bin[dst] + 1, 1);
+		uint8_t af = ((bin[dst] & 15) + (~bin[dst] & 15) + 1) & 16;
+		uint8_t zf = !(~bin[dst] + 1) << 6;
+		bin[dst] = ~bin[dst] + 1;
+		uint8_t bor = !cf;
+		
+		cf = ((~bin[dst + 1] + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(~bin[dst + 1] + bor, pf);
+		zf = (!(~bin[dst + 1] + bor) && zf) << 6;
+		bin[dst + 1] = ~bin[dst + 1] + bor;
+		bor = !cf;
+		
+		cf = ((~bin[dst + 2] + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(~bin[dst + 2] + bor, pf);
+		zf = (!(~bin[dst + 2] + bor) && zf) << 6;
+		bin[dst + 2] = ~bin[dst + 2] + bor;
+		bor = !cf;
+		
+		cf = ((~bin[dst + 3] + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(~bin[dst + 3] + bor, pf);
+		zf = (!(~bin[dst + 3] + bor) && zf) << 6;
+		uint8_t sf = (~bin[dst + 3] + bor) & 128;
+		uint8_t of = !!(bin[dst + 3] & 128) << 3;
+		bin[dst + 3] = ~bin[dst + 3] + bor;
+		
+		bin[136] = bin[136] | cf;
+		bin[136] = bin[136] | pf;
+		bin[136] = bin[136] | af;
+		bin[136] = bin[136] | sf;
+		bin[136] = bin[136] | zf;
+		bin[137] = bin[137] | of;
+	}
+}
+
+void x86_64_inc_neg_reg_64(uint8_t* bin, uint64_t bn, uint64_t dst) {
+	if (dst >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		bin[136] = bin[136] & 42;
+		bin[137] = bin[137] & 247;
+		
+		uint8_t cf = ((~bin[dst] + 1) & 256) >> 8;
+		uint8_t pf = x86_64_parity_flag(~bin[dst] + 1, 1);
+		uint8_t af = ((bin[dst] & 15) + (~bin[dst] & 15) + 1) & 16;
+		uint8_t zf = !(~bin[dst] + 1) << 6;
+		bin[dst] = ~bin[dst] + 1;
+		uint8_t bor = !cf;
+		
+		cf = ((~bin[dst + 1] + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(~bin[dst + 1] + bor, pf);
+		zf = (!(~bin[dst + 1] + bor) && zf) << 6;
+		bin[dst + 1] = ~bin[dst + 1] + bor;
+		bor = !cf;
+		
+		cf = ((~bin[dst + 2] + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(~bin[dst + 2] + bor, pf);
+		zf = (!(~bin[dst + 2] + bor) && zf) << 6;
+		bin[dst + 2] = ~bin[dst + 2] + bor;
+		bor = !cf;
+		
+		cf = ((~bin[dst + 3] + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(~bin[dst + 3] + bor, pf);
+		zf = (!(~bin[dst + 3] + bor) && zf) << 6;
+		bin[dst + 3] = ~bin[dst + 3] + bor;
+		bor = !cf;
+		
+		cf = ((~bin[dst + 4] + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(~bin[dst + 4] + bor, pf);
+		zf = (!(~bin[dst + 4] + bor) && zf) << 6;
+		bin[dst + 4] = ~bin[dst + 4] + bor;
+		bor = !cf;
+		
+		cf = ((~bin[dst + 5] + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(~bin[dst + 5] + bor, pf);
+		zf = (!(~bin[dst + 5] + bor) && zf) << 6;
+		bin[dst + 5] = ~bin[dst + 5] + bor;
+		bor = !cf;
+		
+		cf = ((~bin[dst + 6] + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(~bin[dst + 6] + bor, pf);
+		zf = (!(~bin[dst + 6] + bor) && zf) << 6;
+		bin[dst + 6] = ~bin[dst + 6] + bor;
+		bor = !cf;
+		
+		cf = ((~bin[dst + 7] + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(~bin[dst + 7] + bor, pf);
+		zf = (!(~bin[dst + 7] + bor) && zf) << 6;
+		uint8_t sf = (~bin[dst + 7] + bor) & 128;
+		uint8_t of = !!(bin[dst + 7] & 128) << 3;
+		bin[dst + 7] = ~bin[dst + 7] + bor;
+		
+		bin[136] = bin[136] | cf;
+		bin[136] = bin[136] | pf;
+		bin[136] = bin[136] | af;
+		bin[136] = bin[136] | sf;
+		bin[136] = bin[136] | zf;
+		bin[137] = bin[137] | of;
+	}
+}
+
+void x86_64_inc_inc_reg_8(uint8_t* bin, uint64_t bn, uint64_t dst) {
+	if (dst >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		bin[136] = bin[136] & 42;
+		bin[137] = bin[137] & 247;
+		
+		uint8_t cf = ((bin[dst] + 1) & 256) >> 8;
+		uint8_t pf = x86_64_parity_flag(bin[dst] + 1, 1);
+		uint8_t af = ((bin[dst] & 15) + 1) & 16;
+		uint8_t zf = !(bin[dst] + 1) << 6;
+		uint8_t sf = (bin[dst] + 1) & 128;
+		uint8_t of = 0;
+		bin[dst] = bin[dst] + 1;
+		
+		bin[136] = bin[136] | cf;
+		bin[136] = bin[136] | pf;
+		bin[136] = bin[136] | af;
+		bin[136] = bin[136] | sf;
+		bin[136] = bin[136] | zf;
+		bin[137] = bin[137] | of;
+	}
+}
+
+void x86_64_inc_inc_reg_16(uint8_t* bin, uint64_t bn, uint64_t dst) {
+	if (dst >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		bin[136] = bin[136] & 42;
+		bin[137] = bin[137] & 247;
+		
+		uint8_t cf = ((bin[dst] + 1) & 256) >> 8;
+		uint8_t pf = x86_64_parity_flag(bin[dst] + 1, 1);
+		uint8_t af = ((bin[dst] & 15) + 1) & 16;
+		uint8_t zf = !(bin[dst] + 1) << 6;
+		bin[dst] = bin[dst] + 1;
+		uint8_t car = cf;
+		
+		cf = ((bin[dst + 1] + car) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 1] + car, pf);
+		zf = (!(bin[dst + 1] + car) && zf) << 6;
+		uint8_t sf = (bin[dst + 1] + car) & 128;
+		uint8_t of = 0;
+		bin[dst + 1] = bin[dst + 1] + car;
+		
+		bin[136] = bin[136] | cf;
+		bin[136] = bin[136] | pf;
+		bin[136] = bin[136] | af;
+		bin[136] = bin[136] | sf;
+		bin[136] = bin[136] | zf;
+		bin[137] = bin[137] | of;
+	}
+}
+
+void x86_64_inc_inc_reg_32(uint8_t* bin, uint64_t bn, uint64_t dst) {
+	if (dst >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		bin[136] = bin[136] & 42;
+		bin[137] = bin[137] & 247;
+		
+		uint8_t cf = ((bin[dst] + 1) & 256) >> 8;
+		uint8_t pf = x86_64_parity_flag(bin[dst] + 1, 1);
+		uint8_t af = ((bin[dst] & 15) + 1) & 16;
+		uint8_t zf = !(bin[dst] + 1) << 6;
+		bin[dst] = bin[dst] + 1;
+		uint8_t car = cf;
+		
+		cf = ((bin[dst + 1] + car) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 1] + car, pf);
+		zf = (!(bin[dst + 1] + car) && zf) << 6;
+		bin[dst + 1] = bin[dst + 1] + car;
+		car = cf;
+		
+		cf = ((bin[dst + 2] + car) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 2] + car, pf);
+		zf = (!(bin[dst + 2] + car) && zf) << 6;
+		bin[dst + 2] = bin[dst + 2] + car;
+		car = cf;
+		
+		cf = ((bin[dst + 3] + car) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 3] + car, pf);
+		zf = (!(bin[dst + 3] + car) && zf) << 6;
+		uint8_t sf = (bin[dst + 3] + car) & 128;
+		uint8_t of = 0;
+		bin[dst + 3] = bin[dst + 3] + car;
+		
+		bin[136] = bin[136] | cf;
+		bin[136] = bin[136] | pf;
+		bin[136] = bin[136] | af;
+		bin[136] = bin[136] | sf;
+		bin[136] = bin[136] | zf;
+		bin[137] = bin[137] | of;
+	}
+}
+
+void x86_64_inc_inc_reg_64(uint8_t* bin, uint64_t bn, uint64_t dst) {
+	if (dst >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		bin[136] = bin[136] & 42;
+		bin[137] = bin[137] & 247;
+		
+		uint8_t cf = ((bin[dst] + 1) & 256) >> 8;
+		uint8_t pf = x86_64_parity_flag(bin[dst] + 1, 1);
+		uint8_t af = ((bin[dst] & 15) + 1) & 16;
+		uint8_t zf = !(bin[dst] + 1) << 6;
+		bin[dst] = bin[dst] + 1;
+		uint8_t car = cf;
+		
+		cf = ((bin[dst + 1] + car) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 1] + car, pf);
+		zf = (!(bin[dst + 1] + car) && zf) << 6;
+		bin[dst + 1] = bin[dst + 1] + car;
+		car = cf;
+		
+		cf = ((bin[dst + 2] + car) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 2] + car, pf);
+		zf = (!(bin[dst + 2] + car) && zf) << 6;
+		bin[dst + 2] = bin[dst + 2] + car;
+		car = cf;
+		
+		cf = ((bin[dst + 3] + car) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 3] + car, pf);
+		zf = (!(bin[dst + 3] + car) && zf) << 6;
+		bin[dst + 3] = bin[dst + 3] + car;
+		car = cf;
+		
+		cf = 0;
+		pf = x86_64_parity_flag(car, pf);
+		zf = (!car && zf) << 6;
+		uint8_t sf = bin[dst + 7] & 128;
+		uint8_t of = 0;
+		bin[dst + 4] = car;
+		
+		bin[136] = bin[136] | cf;
+		bin[136] = bin[136] | pf;
+		bin[136] = bin[136] | af;
+		bin[136] = bin[136] | sf;
+		bin[136] = bin[136] | zf;
+		bin[137] = bin[137] | of;
+	}
+}
+
+void x86_64_inc_dec_reg_8(uint8_t* bin, uint64_t bn, uint64_t dst) {
+	if (dst >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		bin[136] = bin[136] & 42;
+		bin[137] = bin[137] & 247;
+		
+		uint8_t cf = ((bin[dst] + 255) & 256) >> 8;
+		uint8_t pf = x86_64_parity_flag(bin[dst] + 255, 1);
+		uint8_t af = ((bin[dst] & 15) + 255) & 16;
+		uint8_t zf = !(bin[dst] + 255) << 6;
+		uint8_t sf = (bin[dst] + 255) & 128;
+		uint8_t of = ((bin[dst] & 128) ^ (255 & 128)) << 3;
+		bin[dst] = bin[dst] + 255;
+		
+		bin[136] = bin[136] | cf;
+		bin[136] = bin[136] | pf;
+		bin[136] = bin[136] | af;
+		bin[136] = bin[136] | sf;
+		bin[136] = bin[136] | zf;
+		bin[137] = bin[137] | of;
+	}
+}
+
+void x86_64_inc_jo_s(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) {
 	uint8_t of = bin[137] & 8;
 	if (of) {
-		ip = ip - k;
-		if (ip >= bn || ip < 138) {
+		if ((ip - k) >= bn || (ip - k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip - k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -15839,14 +16322,15 @@ void x86_64_inc_jo_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jo_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_jo_u(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t of = bin[137] & 8;
 	if (of) {
-		ip = ip + k;
-		if (ip >= bn || ip < 138) {
+		if ((ip + k) >= bn || (ip + k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip + k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -15855,14 +16339,15 @@ void x86_64_inc_jo_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jno_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_jno_s(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t of = bin[137] & 8;
 	if (!of) {
-		ip = ip - k;
-		if (ip >= bn || ip < 138) {
+		if ((ip - k) >= bn || (ip - k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip - k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -15871,14 +16356,15 @@ void x86_64_inc_jno_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jno_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_jno_u(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t of = bin[137] & 8;
 	if (!of) {
-		ip = ip + k;
-		if (ip >= bn || ip < 138) {
+		if ((ip + k) >= bn || (ip + k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip + k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -15887,14 +16373,15 @@ void x86_64_inc_jno_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jc_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
+void x86_64_inc_jc_s(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) {
 	uint8_t cf = bin[136] & 1;
 	if (cf) {
-		ip = ip - k;
-		if (ip >= bn || ip < 138) {
+		if ((ip - k) >= bn || (ip - k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip - k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -15903,14 +16390,15 @@ void x86_64_inc_jc_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jc_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
+void x86_64_inc_jc_u(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) {
 	uint8_t cf = bin[136] & 1;
 	if (cf) {
-		ip = ip + k;
-		if (ip >= bn || ip < 138) {
+		if ((ip + k) >= bn || (ip + k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip + k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -15919,14 +16407,15 @@ void x86_64_inc_jc_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jnc_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
+void x86_64_inc_jnc_s(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) {
 	uint8_t cf = bin[136] & 1;
 	if (!cf) {
-		ip = ip - k;
-		if (ip >= bn || ip < 138) {
+		if ((ip - k) >= bn || (ip - k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip - k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -15935,14 +16424,15 @@ void x86_64_inc_jnc_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jnc_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
+void x86_64_inc_jnc_u(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) {
 	uint8_t cf = bin[136] & 1;
 	if (!cf) {
-		ip = ip + k;
-		if (ip >= bn || ip < 138) {
+		if ((ip + k) >= bn || (ip + k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip + k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -15951,14 +16441,15 @@ void x86_64_inc_jnc_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_je_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_je_s(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t zf = bin[136] & 64;
 	if (zf) {
-		ip = ip - k;
-		if (ip >= bn || ip < 138) {
+		if ((ip - k) >= bn || (ip - k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip - k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -15967,14 +16458,15 @@ void x86_64_inc_je_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_je_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_je_u(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t zf = bin[136] & 64;
 	if (zf) {
-		ip = ip + k;
-		if (ip >= bn || ip < 138) {
+		if ((ip + k) >= bn || (ip + k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip + k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -15983,14 +16475,15 @@ void x86_64_inc_je_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jne_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_jne_s(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t zf = bin[136] & 64;
 	if (!zf) {
-		ip = ip - k;
-		if (ip >= bn || ip < 138) {
+		if ((ip - k) >= bn || (ip - k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip - k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -15999,14 +16492,15 @@ void x86_64_inc_jne_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jne_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_jne_u(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t zf = bin[136] & 64;
 	if (!zf) {
-		ip = ip + k;
-		if (ip >= bn || ip < 138) {
+		if ((ip + k) >= bn || (ip + k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip + k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -16015,14 +16509,15 @@ void x86_64_inc_jne_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jna_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_jna_s(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t af = bin[136] & 16;
 	if (!af) {
-		ip = ip - k;
-		if (ip >= bn || ip < 138) {
+		if ((ip - k) >= bn || (ip - k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip - k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -16031,14 +16526,15 @@ void x86_64_inc_jna_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jna_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_jna_u(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t af = bin[136] & 16;
 	if (!af) {
-		ip = ip + k;
-		if (ip >= bn || ip < 138) {
+		if ((ip + k) >= bn || (ip + k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip + k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -16047,14 +16543,15 @@ void x86_64_inc_jna_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_ja_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_ja_s(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t af = bin[136] & 16;
 	if (af) {
-		ip = ip - k;
-		if (ip >= bn || ip < 138) {
+		if ((ip - k) >= bn || (ip - k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip - k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -16063,14 +16560,15 @@ void x86_64_inc_ja_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_ja_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_ja_u(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t af = bin[136] & 16;
 	if (af) {
-		ip = ip + k;
-		if (ip >= bn || ip < 138) {
+		if ((ip + k) >= bn || (ip + k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip + k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -16079,14 +16577,15 @@ void x86_64_inc_ja_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_js_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_js_s(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t sf = bin[136] & 128;
 	if (sf) {
-		ip = ip - k;
-		if (ip >= bn || ip < 138) {
+		if ((ip - k) >= bn || (ip - k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip - k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -16095,14 +16594,15 @@ void x86_64_inc_js_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_js_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_js_u(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t sf = bin[136] & 128;
 	if (sf) {
-		ip = ip + k;
-		if (ip >= bn || ip < 138) {
+		if ((ip + k) >= bn || (ip + k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip + k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -16111,14 +16611,15 @@ void x86_64_inc_js_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jns_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_jns_s(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t sf = bin[136] & 128;
 	if (!sf) {
-		ip = ip - k;
-		if (ip >= bn || ip < 138) {
+		if ((ip - k) >= bn || (ip - k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip - k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -16127,14 +16628,15 @@ void x86_64_inc_jns_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jns_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_jns_u(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t sf = bin[136] & 128;
 	if (!sf) {
-		ip = ip + k;
-		if (ip >= bn || ip < 138) {
+		if ((ip + k) >= bn || (ip + k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip + k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -16143,14 +16645,15 @@ void x86_64_inc_jns_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jpe_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_jpe_s(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t pf = bin[136] & 4;
 	if (pf) {
-		ip = ip - k;
-		if (ip >= bn || ip < 138) {
+		if ((ip - k) >= bn || (ip - k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip - k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -16159,14 +16662,15 @@ void x86_64_inc_jpe_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jpe_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_jpe_u(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t pf = bin[136] & 4;
 	if (pf) {
-		ip = ip + k;
-		if (ip >= bn || ip < 138) {
+		if ((ip + k) >= bn || (ip + k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip + k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -16175,14 +16679,15 @@ void x86_64_inc_jpe_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jpo_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_jpo_s(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t pf = bin[136] & 4;
 	if (!pf) {
-		ip = ip - k;
-		if (ip >= bn || ip < 138) {
+		if ((ip - k) >= bn || (ip - k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip - k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -16191,14 +16696,15 @@ void x86_64_inc_jpo_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jpo_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_jpo_u(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t pf = bin[136] & 4;
 	if (!pf) {
-		ip = ip + k;
-		if (ip >= bn || ip < 138) {
+		if ((ip + k) >= bn || (ip + k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip + k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -16207,15 +16713,16 @@ void x86_64_inc_jpo_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jl_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_jl_s(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t sf = bin[136] & 128;
 	uint8_t of = bin[137] & 8;
 	if (sf ^ of) {
-		ip = ip - k;
-		if (ip >= bn || ip < 138) {
+		if ((ip - k) >= bn || (ip - k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip - k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -16224,15 +16731,16 @@ void x86_64_inc_jl_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jl_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_jl_u(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t sf = bin[136] & 128;
 	uint8_t of = bin[137] & 8;
 	if (sf ^ of) {
-		ip = ip + k;
-		if (ip >= bn || ip < 138) {
+		if ((ip + k) >= bn || (ip + k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip + k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -16241,15 +16749,16 @@ void x86_64_inc_jl_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jge_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_jge_s(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t sf = bin[136] & 128;
 	uint8_t of = bin[137] & 8;
 	if (!(sf ^ of)) {
-		ip = ip - k;
-		if (ip >= bn || ip < 138) {
+		if ((ip - k) >= bn || (ip - k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip - k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -16258,15 +16767,16 @@ void x86_64_inc_jge_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jge_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_jge_u(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t sf = bin[136] & 128;
 	uint8_t of = bin[137] & 8;
 	if (!(sf ^ of)) {
-		ip = ip + k;
-		if (ip >= bn || ip < 138) {
+		if ((ip + k) >= bn || (ip + k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip + k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -16275,16 +16785,17 @@ void x86_64_inc_jge_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jle_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_jle_s(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t zf = bin[136] & 64;
 	uint8_t sf = bin[136] & 128;
 	uint8_t of = bin[137] & 8;
 	if (zf || (sf ^ of)) {
-		ip = ip - k;
-		if (ip >= bn || ip < 138) {
+		if ((ip - k) >= bn || (ip - k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip - k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -16293,16 +16804,17 @@ void x86_64_inc_jle_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jle_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_jle_u(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t zf = bin[136] & 64;
 	uint8_t sf = bin[136] & 128;
 	uint8_t of = bin[137] & 8;
 	if (zf || (sf ^ of)) {
-		ip = ip + k;
-		if (ip >= bn || ip < 138) {
+		if ((ip + k) >= bn || (ip + k) < 138) {
 			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
 		}
 		else {
+			ip = ip + k;
 			x86_64_reg_set_ip(bin, bn, ip);
 		}
 	}
@@ -16311,39 +16823,109 @@ void x86_64_inc_jle_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) {
 	}
 }
 
-void x86_64_inc_jg_s8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
+void x86_64_inc_jg_s(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
 	uint8_t zf = bin[136] & 64;
 	uint8_t sf = bin[136] & 128;
 	uint8_t of = bin[137] & 8;
 	if (!zf && !(sf ^ of)) {
+		if ((ip - k) >= bn || (ip - k) < 138) {
+			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
+		}
+		else {
+			ip = ip - k;
+			x86_64_reg_set_ip(bin, bn, ip);
+		}
+	}
+	else {
+		x86_64_reg_set_ip(bin, bn, ip);
+	}
+}
+
+void x86_64_inc_jg_u(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
+	uint8_t zf = bin[136] & 64;
+	uint8_t sf = bin[136] & 128;
+	uint8_t of = bin[137] & 8;
+	if (!zf && !(sf ^ of)) {
+		if ((ip + k) >= bn || (ip + k) < 138) {
+			printf("[error] illegal memory access\n");
+			x86_64_reg_set_ip(bin, bn, ip);
+		}
+		else {
+			ip = ip + k;
+			x86_64_reg_set_ip(bin, bn, ip);
+		}
+	}
+	else {
+		x86_64_reg_set_ip(bin, bn, ip);
+	}
+}
+
+void x86_64_inc_jmp_s(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
+	if ((ip - k) >= bn || (ip - k) < 138) {
+		printf("[error] illegal memory access\n");
+		x86_64_reg_set_ip(bin, bn, ip);
+	}
+	else {
 		ip = ip - k;
-		if (ip >= bn || ip < 138) {
-			printf("[error] illegal memory access\n");
-		}
-		else {
-			x86_64_reg_set_ip(bin, bn, ip);
-		}
-	}
-	else {
 		x86_64_reg_set_ip(bin, bn, ip);
 	}
 }
 
-void x86_64_inc_jg_u8(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t k) { 
-	uint8_t zf = bin[136] & 64;
-	uint8_t sf = bin[136] & 128;
-	uint8_t of = bin[137] & 8;
-	if (!zf && !(sf ^ of)) {
-		ip = ip + k;
-		if (ip >= bn || ip < 138) {
-			printf("[error] illegal memory access\n");
-		}
-		else {
-			x86_64_reg_set_ip(bin, bn, ip);
-		}
+void x86_64_inc_jmp_u(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
+	if ((ip + k) >= bn || (ip + k) < 138) {
+		printf("[error] illegal memory access\n");
+		x86_64_reg_set_ip(bin, bn, ip);
 	}
 	else {
+		ip = ip + k;
 		x86_64_reg_set_ip(bin, bn, ip);
+	}
+}
+
+void x86_64_inc_call_s(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
+	uint64_t sp = x86_64_reg_get_sp(bin) + 138;
+	if ((ip - k) >= bn || (ip - k) < 138 || (sp - 8) >= bn || (sp - 8) < 138) {
+		printf("[error] illegal memory access\n");
+		x86_64_reg_set_ip(bin, bn, ip);
+	}
+	else {
+		sp = sp - 8;
+		ip = ip - 138;
+		bin[sp] = ip;
+		bin[sp + 1] = ip >> 8;
+		bin[sp + 2] = ip >> 16;
+		bin[sp + 3] = ip >> 24;
+		bin[sp + 4] = ip >> 32;
+		bin[sp + 5] = ip >> 40;
+		bin[sp + 6] = ip >> 48;
+		bin[sp + 7] = ip >> 56;
+		ip = (ip + 138) - k;
+		x86_64_reg_set_ip(bin, bn, ip);
+		x86_64_reg_set_sp(bin, sp);
+	}
+}
+
+void x86_64_inc_call_u(uint8_t* bin, uint64_t bn, uint64_t ip, uint32_t k) { 
+	uint64_t sp = x86_64_reg_get_sp(bin) + 138;
+	if ((ip + k) >= bn || (ip + k) < 138 || (sp - 8) >= bn || (sp - 8) < 138) {
+		printf("[error] illegal memory access\n");
+		x86_64_reg_set_ip(bin, bn, ip);
+	}
+	else {
+		sp = sp - 8;
+		ip = ip - 138;
+		bin[sp] = ip;
+		bin[sp + 1] = ip >> 8;
+		bin[sp + 2] = ip >> 16;
+		bin[sp + 3] = ip >> 24;
+		bin[sp + 4] = ip >> 32;
+		bin[sp + 5] = ip >> 40;
+		bin[sp + 6] = ip >> 48;
+		bin[sp + 7] = ip >> 56;
+		ip = ip + k + 138;
+		x86_64_reg_set_ip(bin, bn, ip);
+		x86_64_reg_set_sp(bin, sp);
 	}
 }
 
@@ -16355,6 +16937,7 @@ void x86_64_inc_ret(uint8_t* bin, uint64_t bn) {
 	else {
 		uint64_t ip = bin[sp] + (bin[sp + 1] << 8) + (bin[sp + 2] << 16) + (bin[sp + 3] << 24) + (bin[sp + 4] << 32) + (bin[sp + 5] << 40) + (bin[sp + 6] << 48) + (bin[sp + 7] << 56);
 		sp = sp + 8;
+		ip = ip + 138;
 		x86_64_reg_set_ip(bin, bn, ip);
 		x86_64_reg_set_sp(bin, sp);
 	}
@@ -18054,11 +18637,11 @@ uint8_t x86_64_inc_k80(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op0, uint
 				uint8_t k = bin[ip];
 				ip = ip + 1;
 				if (lga) {
-					x86_64_inc_op(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, 32, 0, 0) + 138, k);
+					x86_64_inc_op(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i * 8, 0, 0) + 138, k);
 					x86_64_reg_set_ip(bin, bn, ip);
 				}
 				else {
-					x86_64_inc_op(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, 32, 0, 0) + 138, k);
+					x86_64_inc_op(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i * 8, 0, 0) + 138, k);
 					x86_64_reg_set_ip(bin, bn, ip);
 				}
 			}
@@ -18291,11 +18874,11 @@ uint8_t x86_64_inc_imm(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op0, uint
 					uint16_t k = bin[ip] + (bin[ip + 1] << 8);
 					ip = ip + 2;
 					if (lga) {
-						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i * 8, 0, 0) + 138, k);
 						x86_64_reg_set_ip(bin, bn, ip);
 					}
 					else {
-						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i * 8, 0, 0) + 138, k);
 						x86_64_reg_set_ip(bin, bn, ip);
 					}
 				}
@@ -18303,11 +18886,11 @@ uint8_t x86_64_inc_imm(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op0, uint
 					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
 					ip = ip + 4;
 					if (lga) {
-						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i * 8, 0, 0) + 138, k);
 						x86_64_reg_set_ip(bin, bn, ip);
 					}
 					else {
-						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i * 8, 0, 0) + 138, k);
 						x86_64_reg_set_ip(bin, bn, ip);
 					}
 				}
@@ -18315,11 +18898,11 @@ uint8_t x86_64_inc_imm(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op0, uint
 					uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
 					ip = ip + 4;
 					if (lga) {
-						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i * 8, 0, 0) + 138, k);
 						x86_64_reg_set_ip(bin, bn, ip);
 					}
 					else {
-						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i * 8, 0, 0) + 138, k);
 						x86_64_reg_set_ip(bin, bn, ip);
 					}
 				}
@@ -18858,31 +19441,31 @@ uint8_t x86_64_inc_k81(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op0, uint
 				ip = ip + 1;
 				if (lgo) {
 					if (lga) {
-						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i * 8, 0, 0) + 138, k);
 						x86_64_reg_set_ip(bin, bn, ip);
 					}
 					else {
-						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_inc_op_16(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i * 8, 0, 0) + 138, k);
 						x86_64_reg_set_ip(bin, bn, ip);
 					}
 				}
 				else if (!rx3) {
 					if (lga) {
-						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i * 8, 0, 0) + 138, k);
 						x86_64_reg_set_ip(bin, bn, ip);
 					}
 					else {
-						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_inc_op_32(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i * 8, 0, 0) + 138, k);
 						x86_64_reg_set_ip(bin, bn, ip);
 					}
 				}
 				else {
 					if (lga) {
-						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u32(bin, bn, b * 8, i * 8, 0, 0) + 138, k);
 						x86_64_reg_set_ip(bin, bn, ip);
 					}
 					else {
-						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, 32, 0, 0) + 138, k);
+						x86_64_inc_op_64(bin, bn, x86_64_inc_addr_u64(bin, bn, b * 8, i * 8, 0, 0) + 138, k);
 						x86_64_reg_set_ip(bin, bn, ip);
 					}
 				}
@@ -19383,7 +19966,7 @@ uint8_t x86_64_inc_op_imm(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op, vo
 	return 1;
 }
 
-uint8_t x86_64_inc_byt_imm(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op, void (*x86_64_inc_op_s) (uint8_t*, uint64_t, uint64_t, uint8_t), void (*x86_64_inc_op_u) (uint8_t*, uint64_t, uint64_t, uint8_t), uint8_t lga, uint8_t lgo, uint8_t rex, uint8_t rx0, uint8_t rx1, uint8_t rx2, uint8_t rx3) {
+uint8_t x86_64_inc_byt_imm(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op, void (*x86_64_inc_op_s) (uint8_t*, uint64_t, uint64_t, uint32_t), void (*x86_64_inc_op_u) (uint8_t*, uint64_t, uint64_t, uint32_t), uint8_t lga, uint8_t lgo, uint8_t rex, uint8_t rx0, uint8_t rx1, uint8_t rx2, uint8_t rx3) {
 	if (bin[ip] == op) {
 		ip = ip + 1;
 		
@@ -19402,10 +19985,71 @@ uint8_t x86_64_inc_byt_imm(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op, v
 	return 1;
 }
 
+uint8_t x86_64_inc_cond(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op, void (*x86_64_inc_op_s) (uint8_t*, uint64_t, uint64_t, uint32_t), void (*x86_64_inc_op_u) (uint8_t*, uint64_t, uint64_t, uint32_t), uint8_t lga, uint8_t lgo, uint8_t rex, uint8_t rx0, uint8_t rx1, uint8_t rx2, uint8_t rx3) {
+	if (bin[ip] == 15 && bin[ip + 1] == op) {
+		ip = ip + 2;
+		
+		uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+		ip = ip + 4;
+		
+		if (k & 2147483648) {
+			k = ~k + 1;
+			x86_64_inc_op_s(bin, bn, ip, k);
+		}
+		else {
+			x86_64_inc_op_u(bin, bn, ip, k);
+		}
+		return 0;
+	}
+	return 1;
+}
+
+uint8_t x86_64_inc_jmp(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op, void (*x86_64_inc_op_s) (uint8_t*, uint64_t, uint64_t, uint32_t), void (*x86_64_inc_op_u) (uint8_t*, uint64_t, uint64_t, uint32_t), uint8_t lga, uint8_t lgo, uint8_t rex, uint8_t rx0, uint8_t rx1, uint8_t rx2, uint8_t rx3) {
+	if (bin[ip] == op) {
+		ip = ip + 1;
+		
+		if (lgo) {
+			uint16_t k = bin[ip] + (bin[ip + 1] << 8);
+			ip = ip + 2;
+			if (k & 32768) {
+				x86_64_inc_op_s(bin, bn, ip, k);
+			}
+			else {
+				x86_64_inc_op_u(bin, bn, ip, k);
+			}
+		}
+		else {
+			uint32_t k = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+			ip = ip + 4;
+			if (k & 2147483648) {
+				k = ~k + 1;
+				x86_64_inc_op_s(bin, bn, ip, k);
+			}
+			else {
+				x86_64_inc_op_u(bin, bn, ip, k);
+			}
+		}
+		return 0;
+	}
+	return 1;
+}
+
+uint8_t x86_64_inc_sys(uint8_t* bin, uint64_t bn, uint64_t ip, void (*x86_64_syscall) (uint8_t*, uint64_t)) {
+	if (bin[ip] == 15 && bin[ip + 1] == 5) {
+		ip = ip + 2;
+		//system specific call
+		x86_64_syscall(bin, bn);
+		x86_64_reg_set_ip(bin, bn, ip);
+		return 0;
+	}
+	return 1;
+}
+
 uint8_t x86_64_inc_byt(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op, void (*x86_64_inc_op) (uint8_t*, uint64_t), uint8_t lga, uint8_t lgo, uint8_t rex, uint8_t rx0, uint8_t rx1, uint8_t rx2, uint8_t rx3) {
 	if (bin[ip] == op) {
 		ip = ip + 1;
 		x86_64_inc_op(bin, bn);
+		return 0;
 	}
 	return 1;
 }
@@ -20140,7 +20784,7 @@ uint8_t x86_64_inc_blnk(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op0, uin
 	return 1;
 }
 
-void x86_64_inc(uint8_t* bin, uint64_t bn, uint64_t ip) {
+void x86_64_inc(uint8_t* bin, uint64_t bn, uint64_t ip, void (*x86_64_syscall) (uint8_t*, uint64_t)) {
 	uint8_t lga = 0;
 	uint8_t lgo = 0;
 	uint8_t rex = 0;
@@ -20333,52 +20977,52 @@ void x86_64_inc(uint8_t* bin, uint64_t bn, uint64_t ip) {
 		eo = x86_64_inc_op_imm(bin, bn, ip, 104, x86_64_inc_push_imm_16, x86_64_inc_push_imm_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
-		eo = x86_64_inc_byt_imm(bin, bn, ip, 112, x86_64_inc_jo_s8, x86_64_inc_jo_u8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+		eo = x86_64_inc_byt_imm(bin, bn, ip, 112, x86_64_inc_jo_s, x86_64_inc_jo_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
-		eo = x86_64_inc_byt_imm(bin, bn, ip, 113, x86_64_inc_jno_s8, x86_64_inc_jno_u8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+		eo = x86_64_inc_byt_imm(bin, bn, ip, 113, x86_64_inc_jno_s, x86_64_inc_jno_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
-		eo = x86_64_inc_byt_imm(bin, bn, ip, 114, x86_64_inc_jc_s8, x86_64_inc_jc_u8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+		eo = x86_64_inc_byt_imm(bin, bn, ip, 114, x86_64_inc_jc_s, x86_64_inc_jc_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
-		eo = x86_64_inc_byt_imm(bin, bn, ip, 115, x86_64_inc_jnc_s8, x86_64_inc_jnc_u8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+		eo = x86_64_inc_byt_imm(bin, bn, ip, 115, x86_64_inc_jnc_s, x86_64_inc_jnc_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
-		eo = x86_64_inc_byt_imm(bin, bn, ip, 116, x86_64_inc_je_s8, x86_64_inc_je_u8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+		eo = x86_64_inc_byt_imm(bin, bn, ip, 116, x86_64_inc_je_s, x86_64_inc_je_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
-		eo = x86_64_inc_byt_imm(bin, bn, ip, 117, x86_64_inc_jne_s8, x86_64_inc_jne_u8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+		eo = x86_64_inc_byt_imm(bin, bn, ip, 117, x86_64_inc_jne_s, x86_64_inc_jne_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
-		eo = x86_64_inc_byt_imm(bin, bn, ip, 118, x86_64_inc_jna_s8, x86_64_inc_jna_u8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+		eo = x86_64_inc_byt_imm(bin, bn, ip, 118, x86_64_inc_jna_s, x86_64_inc_jna_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
-		eo = x86_64_inc_byt_imm(bin, bn, ip, 119, x86_64_inc_ja_s8, x86_64_inc_ja_u8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+		eo = x86_64_inc_byt_imm(bin, bn, ip, 119, x86_64_inc_ja_s, x86_64_inc_ja_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
-		eo = x86_64_inc_byt_imm(bin, bn, ip, 120, x86_64_inc_js_s8, x86_64_inc_js_u8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+		eo = x86_64_inc_byt_imm(bin, bn, ip, 120, x86_64_inc_js_s, x86_64_inc_js_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
-		eo = x86_64_inc_byt_imm(bin, bn, ip, 121, x86_64_inc_jns_s8, x86_64_inc_jns_u8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+		eo = x86_64_inc_byt_imm(bin, bn, ip, 121, x86_64_inc_jns_s, x86_64_inc_jns_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
-		eo = x86_64_inc_byt_imm(bin, bn, ip, 122, x86_64_inc_jpe_s8, x86_64_inc_jpe_u8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+		eo = x86_64_inc_byt_imm(bin, bn, ip, 122, x86_64_inc_jpe_s, x86_64_inc_jpe_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
-		eo = x86_64_inc_byt_imm(bin, bn, ip, 123, x86_64_inc_jpo_s8, x86_64_inc_jpo_u8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+		eo = x86_64_inc_byt_imm(bin, bn, ip, 123, x86_64_inc_jpo_s, x86_64_inc_jpo_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
-		eo = x86_64_inc_byt_imm(bin, bn, ip, 124, x86_64_inc_jl_s8, x86_64_inc_jl_u8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+		eo = x86_64_inc_byt_imm(bin, bn, ip, 124, x86_64_inc_jl_s, x86_64_inc_jl_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
-		eo = x86_64_inc_byt_imm(bin, bn, ip, 125, x86_64_inc_jge_s8, x86_64_inc_jge_u8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+		eo = x86_64_inc_byt_imm(bin, bn, ip, 125, x86_64_inc_jge_s, x86_64_inc_jge_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
-		eo = x86_64_inc_byt_imm(bin, bn, ip, 126, x86_64_inc_jle_s8, x86_64_inc_jle_u8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+		eo = x86_64_inc_byt_imm(bin, bn, ip, 126, x86_64_inc_jle_s, x86_64_inc_jle_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
-		eo = x86_64_inc_byt_imm(bin, bn, ip, 127, x86_64_inc_jg_s8, x86_64_inc_jg_u8, lga, lgo, rex, rx0, rx1, rx2, rx3);
+		eo = x86_64_inc_byt_imm(bin, bn, ip, 127, x86_64_inc_jg_s, x86_64_inc_jg_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
 		eo = x86_64_inc_k80(bin, bn, ip, 128, 0, x86_64_inc_add_imm_8, lga, lgo, rex, rx0, rx1, rx2, rx3);
@@ -20534,7 +21178,7 @@ void x86_64_inc(uint8_t* bin, uint64_t bn, uint64_t ip) {
 		eo = x86_64_inc_k80(bin, bn, ip, 198, 0, x86_64_inc_mov_imm_8, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
-		eo = x86_64_inc_k81(bin, bn, ip, 199, 0, x86_64_inc_mov_imm_16, x86_64_inc_mov_imm_32, x86_64_inc_mov_imm_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+		eo = x86_64_inc_imm(bin, bn, ip, 199, 0, x86_64_inc_mov_imm_16, x86_64_inc_mov_imm_32, x86_64_inc_mov_imm_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
 		eo = x86_64_inc_blnk(bin, bn, ip, 208, 0, x86_64_inc_rol_k1_8, x86_64_inc_rol_k1_16, x86_64_inc_rol_k1_32, x86_64_inc_rol_k1_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
@@ -20583,6 +21227,72 @@ void x86_64_inc(uint8_t* bin, uint64_t bn, uint64_t ip) {
 	}
 	if (eo) {
 		eo = x86_64_inc_blnk(bin, bn, ip, 210, 7, x86_64_inc_sar_cl_8, x86_64_inc_sar_cl_16, x86_64_inc_sar_cl_32, x86_64_inc_sar_cl_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_jmp(bin, bn, ip, 232, x86_64_inc_call_s, x86_64_inc_call_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_jmp(bin, bn, ip, 233, x86_64_inc_jmp_s, x86_64_inc_jmp_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_blnk(bin, bn, ip, 246, 2, x86_64_inc_not_reg_8, x86_64_inc_not_reg_16, x86_64_inc_not_reg_32, x86_64_inc_not_reg_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_blnk(bin, bn, ip, 246, 3, x86_64_inc_neg_reg_8, x86_64_inc_neg_reg_16, x86_64_inc_neg_reg_32, x86_64_inc_neg_reg_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_blnk(bin, bn, ip, 254, 0, x86_64_inc_inc_reg_8, x86_64_inc_inc_reg_16, x86_64_inc_inc_reg_32, x86_64_inc_inc_reg_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_sys(bin, bn, ip, x86_64_syscall);
+	}
+	if (eo) {
+		eo = x86_64_inc_cond(bin, bn, ip, 128, x86_64_inc_jo_s, x86_64_inc_jo_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_cond(bin, bn, ip, 129, x86_64_inc_jno_s, x86_64_inc_jno_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_cond(bin, bn, ip, 130, x86_64_inc_jc_s, x86_64_inc_jc_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_cond(bin, bn, ip, 131, x86_64_inc_jnc_s, x86_64_inc_jnc_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_cond(bin, bn, ip, 132, x86_64_inc_je_s, x86_64_inc_je_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_cond(bin, bn, ip, 133, x86_64_inc_jne_s, x86_64_inc_jne_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_cond(bin, bn, ip, 134, x86_64_inc_jna_s, x86_64_inc_jna_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_cond(bin, bn, ip, 135, x86_64_inc_ja_s, x86_64_inc_ja_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_cond(bin, bn, ip, 136, x86_64_inc_js_s, x86_64_inc_js_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_cond(bin, bn, ip, 137, x86_64_inc_jns_s, x86_64_inc_jns_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_cond(bin, bn, ip, 138, x86_64_inc_jpe_s, x86_64_inc_jpe_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_cond(bin, bn, ip, 139, x86_64_inc_jpo_s, x86_64_inc_jpo_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_cond(bin, bn, ip, 140, x86_64_inc_jl_s, x86_64_inc_jl_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_cond(bin, bn, ip, 141, x86_64_inc_jge_s, x86_64_inc_jge_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_cond(bin, bn, ip, 142, x86_64_inc_jle_s, x86_64_inc_jle_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_cond(bin, bn, ip, 143, x86_64_inc_jg_s, x86_64_inc_jg_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
 		printf("[error] unknown instruction\n");

@@ -49,11 +49,36 @@ uint64_t (*n_reg_get_ip) (uint8_t*);
 
 void (*n_reg_print) (uint8_t*);
 
-void (*n_print_stack) (uint8_t*, uint64_t*);
+void (*n_print_stack) (uint8_t*, uint64_t*, uint64_t);
 
 void (*n_dec) (uint8_t*, uint64_t*, uint64_t*);
 
-void (*n_inc) (uint8_t*, uint64_t, uint64_t);
+void (*n_inc) (uint8_t*, uint64_t, uint64_t, void (*arch_syscall) (uint8_t*, uint64_t));
+
+void linux_x86_64_syscall(uint8_t* bin, uint64_t bn) {
+	uint64_t rax = bin[0] + (bin[1] << 8) + (bin[2] << 16) + (bin[3] << 24) + (bin[4] << 32) + (bin[5] << 40) + (bin[6] << 48) + (bin[7] << 56);
+	uint64_t rdi = bin[56] + (bin[57] << 8) + (bin[58] << 16) + (bin[59] << 24) + (bin[60] << 32) + (bin[61] << 40) + (bin[62] << 48) + (bin[63] << 56);
+	uint64_t rsi = bin[48] + (bin[49] << 8) + (bin[50] << 16) + (bin[51] << 24) + (bin[52] << 32) + (bin[53] << 40) + (bin[54] << 48) + (bin[55] << 56);
+	uint64_t rdx = bin[16] + (bin[17] << 8) + (bin[18] << 16) + (bin[19] << 24) + (bin[20] << 32) + (bin[21] << 40) + (bin[22] << 48) + (bin[23] << 56);
+	if (rax == 0) {
+		
+	}
+	else if (rax == 1) {
+		if (rdi == 0) {
+			
+		}
+		else if (rdi == 1) {
+			printf("[console] ");
+			for (uint8_t i; i < rdx; i++) {
+				printf("%c", bin[rsi + 138 + i]); 
+			}
+			printf("\n");
+		}
+	}
+	else if (rax == 60) {
+		printf("exited with return code %u\n", rdi);
+	}
+}
 
 uint64_t str_int_dec(int8_t* a) {
 	uint64_t b = 0;
@@ -146,7 +171,7 @@ void n_dasm(uint8_t* bin, uint64_t bn, struct n_sym_s* sym, uint64_t symn, int8_
 			}
 		}
 		else {
-			n_print_stack(bin + regn, &bi);
+			n_print_stack(bin + regn, &bi, bn - regn);
 		}
 		printf("\n");
 	}
@@ -376,13 +401,12 @@ int8_t main(int32_t argc, int8_t** argv) {
 		uint64_t ip = n_reg_get_ip(bin);
 		
 		uint64_t step = str_int_dec(argv[4]);
-		
 		if (!e) {
 			for (uint64_t i = 0; i < step; i++) {
-				n_inc(bin, bn, ip);
+				n_inc(bin, bn, ip, linux_x86_64_syscall);
+				ip = n_reg_get_ip(bin);
 			}
 			uint64_t sp = n_reg_get_sp(bin);
-			ip = n_reg_get_ip(bin);
 			n_dasm(bin, bn, sym, symn, &e, regn, sp, ip);
 			n_writ(bin, bn, sym, symn, argv[2]);
 		}
