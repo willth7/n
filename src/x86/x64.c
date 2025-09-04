@@ -8051,6 +8051,26 @@ uint8_t x86_64_dec_jmp(uint8_t* bin, uint64_t* bn, uint64_t* addr, uint8_t op, i
 	return 1;
 }
 
+uint8_t x86_64_dec_jmp_byt(uint8_t* bin, uint64_t* bn, uint64_t* addr, uint8_t op, int8_t* mn, uint8_t lga, uint8_t lgo, uint8_t rex, uint8_t rx0, uint8_t rx1, uint8_t rx2, uint8_t rx3) {
+	if (bin[*bn] == op) {
+		printf("%02x ", bin[*bn]);
+		*bn = *bn + 1;
+		printf("                  %02x ", bin[*bn]);
+		uint8_t k = bin[*bn];
+		*bn = *bn + 1;
+		if (k & 128) {
+			printf("            %s -%u", mn, k);
+			*addr = *bn - k;
+		}
+		else {
+			printf("            %s %u", mn, k);
+			*addr = *bn + k;
+		}
+		return 0;
+	}
+	return 1;
+}
+
 uint8_t x86_64_dec_shft_k80(uint8_t* bin, uint64_t* bn, uint64_t* addr, uint8_t op0, uint8_t op1, int8_t* mn, uint8_t lga, uint8_t lgo, uint8_t rex, uint8_t rx0, uint8_t rx1, uint8_t rx2, uint8_t rx3) {
 	if (bin[*bn] == op0 && (bin[*bn + 1] >> 3) == (0 | op1)) {
 		printf("%02x ", bin[*bn]);
@@ -10979,7 +10999,7 @@ void x86_64_dec(uint8_t* bin, uint64_t* bn, uint64_t* addr) {
 		eo = x86_64_dec_jmp(bin, bn, addr, 233, "jmp", lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
-		eo = x86_64_dec_cond(bin, bn, addr, 235, "jmp", lga, lgo, rex, rx0, rx1, rx2, rx3);
+		eo = x86_64_dec_jmp_byt(bin, bn, addr, 235, "jmp", lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
 		eo = x86_64_dec_byt(bin, bn, addr, 240, "lock", lga, lgo, rex, rx0, rx1, rx2, rx3);
@@ -20034,6 +20054,23 @@ uint8_t x86_64_inc_jmp(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op, void 
 	return 1;
 }
 
+uint8_t x86_64_inc_jmp_byt(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op, void (*x86_64_inc_op_s) (uint8_t*, uint64_t, uint64_t, uint32_t), void (*x86_64_inc_op_u) (uint8_t*, uint64_t, uint64_t, uint32_t), uint8_t lga, uint8_t lgo, uint8_t rex, uint8_t rx0, uint8_t rx1, uint8_t rx2, uint8_t rx3) {
+	if (bin[ip] == op) {
+		ip = ip + 1;
+		uint8_t k = bin[ip];
+		ip = ip + 1;
+		if (k & 128) {
+			k = ~k + 1;
+			x86_64_inc_op_s(bin, bn, ip, k);
+		}
+		else {
+			x86_64_inc_op_u(bin, bn, ip, k);
+		}
+		return 0;
+	}
+	return 1;
+}
+
 uint8_t x86_64_inc_sys(uint8_t* bin, uint64_t bn, uint64_t ip, void (*x86_64_syscall) (uint8_t*, uint64_t)) {
 	if (bin[ip] == 15 && bin[ip + 1] == 5) {
 		ip = ip + 2;
@@ -21233,6 +21270,9 @@ void x86_64_inc(uint8_t* bin, uint64_t bn, uint64_t ip, void (*x86_64_syscall) (
 	}
 	if (eo) {
 		eo = x86_64_inc_jmp(bin, bn, ip, 233, x86_64_inc_jmp_s, x86_64_inc_jmp_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_jmp_byt(bin, bn, ip, 235, x86_64_inc_jmp_s, x86_64_inc_jmp_u, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
 		eo = x86_64_inc_blnk(bin, bn, ip, 246, 2, x86_64_inc_not_reg_8, x86_64_inc_not_reg_16, x86_64_inc_not_reg_32, x86_64_inc_not_reg_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
