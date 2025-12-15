@@ -69,8 +69,37 @@ void linux_x86_64_syscall(uint8_t* bin, uint64_t bn) {
 		}
 		else if (rdi == 1) {
 			printf("[console] ");
-			for (uint8_t i; i < rdx; i++) {
-				printf("%c", bin[rsi + 138 + i]); 
+			for (uint8_t i = 0; i < rdx; i++) {
+				if (bin[rsi + 138 + i] == 0) {
+					printf("\\0");
+				}
+				else if (bin[rsi + 138 + i] == 7) {
+					printf("\\a");
+				}
+				else if (bin[rsi + 138 + i] == 8) {
+					printf("\\b");
+				}
+				else if (bin[rsi + 138 + i] == 9) {
+					printf("\\t");
+				}
+				else if (bin[rsi + 138 + i] == 10) {
+					printf("\\n");
+				}
+				else if (bin[rsi + 138 + i] == 11) {
+					printf("\\v");
+				}
+				else if (bin[rsi + 138 + i] == 12) {
+					printf("\\f");
+				}
+				else if (bin[rsi + 138 + i] == 13) {
+					printf("\\r");
+				}
+				else if (bin[rsi + 138 + i] == 27) {
+					printf("\\e");
+				}
+				else {
+					printf("%c", bin[rsi + 138 + i]);
+				}
 			}
 			printf("\n");
 		}
