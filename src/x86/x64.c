@@ -16313,7 +16313,7 @@ void x86_64_inc_dec_reg_8(uint8_t* bin, uint64_t bn, uint64_t dst) {
 		uint8_t af = ((bin[dst] & 15) + 255) & 16;
 		uint8_t zf = !(bin[dst] + 255) << 6;
 		uint8_t sf = (bin[dst] + 255) & 128;
-		uint8_t of = ((bin[dst] & 128) ^ (255 & 128)) << 3;
+		uint8_t of = ((bin[dst] & 128) ^ 128) << 3;
 		bin[dst] = bin[dst] + 255;
 		
 		bin[136] = bin[136] | cf;
@@ -16322,6 +16322,228 @@ void x86_64_inc_dec_reg_8(uint8_t* bin, uint64_t bn, uint64_t dst) {
 		bin[136] = bin[136] | sf;
 		bin[136] = bin[136] | zf;
 		bin[137] = bin[137] | of;
+	}
+}
+
+void x86_64_inc_dec_reg_16(uint8_t* bin, uint64_t bn, uint64_t dst) {
+	if (dst >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		bin[136] = bin[136] & 42;
+		bin[137] = bin[137] & 247;
+		
+		uint8_t cf = ((bin[dst] + 255) & 256) >> 8;
+		uint8_t pf = x86_64_parity_flag(bin[dst] + 255, 1);
+		uint8_t af = ((bin[dst] & 15) + 255) & 16;
+		uint8_t zf = !(bin[dst] + 255) << 6;
+		bin[dst] = bin[dst] + 255;
+		uint8_t bor = !cf;
+		
+		cf = ((bin[dst + 1] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 1] + 255 + bor, pf);
+		zf = !(bin[dst + 1] + 255 && zf) << 6;
+		uint8_t sf = (bin[dst + 1] + 255 + bor) & 128;
+		uint8_t of = ((bin[dst + 1] & 128) ^ 128) << 3;
+		bin[dst + 1] = bin[dst + 1] + 255 + bor;
+		
+		bin[136] = bin[136] | cf;
+		bin[136] = bin[136] | pf;
+		bin[136] = bin[136] | af;
+		bin[136] = bin[136] | sf;
+		bin[136] = bin[136] | zf;
+		bin[137] = bin[137] | of;
+	}
+}
+
+void x86_64_inc_dec_reg_32(uint8_t* bin, uint64_t bn, uint64_t dst) {
+	if (dst >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		bin[136] = bin[136] & 42;
+		bin[137] = bin[137] & 247;
+		
+		uint8_t cf = ((bin[dst] + 255) & 256) >> 8;
+		uint8_t pf = x86_64_parity_flag(bin[dst] + 255, 1);
+		uint8_t af = ((bin[dst] & 15) + 255) & 16;
+		uint8_t zf = !(bin[dst] + 255) << 6;
+		bin[dst] = bin[dst] + 255;
+		uint8_t bor = !cf;
+		
+		cf = ((bin[dst + 1] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 1] + 255 + bor, pf);
+		zf = (!(bin[dst + 1] + 255 + bor) && zf) << 6;
+		bin[dst + 1] = bin[dst + 1] + 255 + bor;
+		bor = !cf;
+		
+		cf = ((bin[dst + 2] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 2] + 255 + bor, pf);
+		zf = (!(bin[dst + 2] + 255 + bor) && zf) << 6;
+		bin[dst + 2] = bin[dst + 2] + 255 + bor;
+		bor = !cf;
+		
+		cf = ((bin[dst + 3] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 3] + 255 + bor, pf);
+		zf = (!(bin[dst + 3] + 255 + bor) && zf) << 6;
+		uint8_t sf = (bin[dst + 3] + 255 + bor) & 128;
+		uint8_t of = ((bin[dst + 3] & 128) ^ 128) << 3;
+		bin[dst + 3] = bin[dst + 3] + 255 + bor;
+		
+		bin[136] = bin[136] | cf;
+		bin[136] = bin[136] | pf;
+		bin[136] = bin[136] | af;
+		bin[136] = bin[136] | sf;
+		bin[136] = bin[136] | zf;
+		bin[137] = bin[137] | of;
+	}
+}
+
+void x86_64_inc_dec_reg_64(uint8_t* bin, uint64_t bn, uint64_t dst) {
+	if (dst >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	else {
+		bin[136] = bin[136] & 42;
+		bin[137] = bin[137] & 247;
+		
+		uint8_t cf = ((bin[dst] + 255) & 256) >> 8;
+		uint8_t pf = x86_64_parity_flag(bin[dst] + 255, 1);
+		uint8_t af = ((bin[dst] & 15) + 255) & 16;
+		uint8_t zf = !(bin[dst] + 255) << 6;
+		bin[dst] = bin[dst] + 255;
+		uint8_t bor = !cf;
+		
+		cf = ((bin[dst + 1] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 1] + 255 + bor, pf);
+		zf = (!(bin[dst + 1] + 255 + bor) && zf) << 6;
+		bin[dst + 1] = bin[dst + 1] + 255 + bor;
+		bor = !cf;
+		
+		cf = ((bin[dst + 2] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 2] + 255 + bor, pf);
+		zf = (!(bin[dst + 2] + 255 + bor) && zf) << 6;
+		bin[dst + 2] = bin[dst + 2] + 255 + bor;
+		bor = !cf;
+		
+		cf = ((bin[dst + 3] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 3] + 255 + bor, pf);
+		zf = (!(bin[dst + 3] + 255 + bor) && zf) << 6;
+		bin[dst + 3] = bin[dst + 3] + 255 + bor;
+		bor = !cf;
+		
+		cf = ((bin[dst + 4] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 4] + 255 + bor, pf);
+		zf = (!((bin[dst + 4] + 255 + bor) & 255) && zf) << 6;
+		bin[dst + 4] = bin[dst + 4] + 255 + bor;
+		bor = cf;
+		
+		cf = ((bin[dst + 5] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 5] + 255 + bor, pf);
+		zf = (!((bin[dst + 5] + 255 + bor) & 255) && zf) << 6;
+		bin[dst + 5] = bin[dst + 5] + 255 + bor;
+		bor = cf;
+		
+		cf = ((bin[dst + 6] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 6] + 255 + bor, pf);
+		zf = (!((bin[dst + 6] + 255 + bor) & 255) && zf) << 6;
+		bin[dst + 6] = bin[dst + 6] + 255 + bor;
+		bor = cf;
+		
+		cf = ((bin[dst + 7] + 255 + bor) & 256) >> 8;
+		pf = x86_64_parity_flag(bin[dst + 7] + 255 + bor, pf);
+		zf = (!((bin[dst + 7] + 255 + bor) & 255) && zf) << 6;
+		uint8_t sf = (bin[dst + 7] + 255 + bor) & 128;
+		uint8_t of = ((bin[dst + 7] & 128) ^ 1) << 3;
+		bin[dst + 7] = bin[dst + 7] + 255 + bor;
+		
+		bin[136] = bin[136] | cf;
+		bin[136] = bin[136] | pf;
+		bin[136] = bin[136] | af;
+		bin[136] = bin[136] | sf;
+		bin[136] = bin[136] | zf;
+		bin[137] = bin[137] | of;
+	}
+}
+
+void x86_64_inc_call_reg_16(uint8_t* bin, uint64_t bn, uint64_t ip, uint64_t src) { 
+	uint64_t sp = x86_64_reg_get_sp(bin) + 138;
+	if (src >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	uint64_t k = bin[src] + (bin[src + 1] << 8);
+	if ((ip - k) >= bn || (ip - k) < 138 || (sp - 8) >= bn || (sp - 8) < 138) {
+		printf("[error] illegal memory access\n");
+		x86_64_reg_set_ip(bin, bn, ip);
+	}
+	else {
+		sp = sp - 8;
+		ip = ip - 138;
+		bin[sp] = ip;
+		bin[sp + 1] = ip >> 8;
+		bin[sp + 2] = ip >> 16;
+		bin[sp + 3] = ip >> 24;
+		bin[sp + 4] = ip >> 32;
+		bin[sp + 5] = ip >> 40;
+		bin[sp + 6] = ip >> 48;
+		bin[sp + 7] = ip >> 56;
+		ip = (ip + 138) - k;
+		x86_64_reg_set_ip(bin, bn, ip);
+		x86_64_reg_set_sp(bin, sp);
+	}
+}
+
+void x86_64_inc_call_reg_64(uint8_t* bin, uint64_t bn, uint64_t ip, uint64_t src) { 
+	uint64_t sp = x86_64_reg_get_sp(bin) + 138;
+	if (src >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	uint64_t k = bin[src] + (bin[src + 1] << 8) + (bin[src + 2] << 16) + (bin[src + 3] << 24) + (bin[src + 4] << 32) + (bin[src + 5] << 40) + (bin[src + 6] << 48) + (bin[src + 7] << 56) + 138;
+	if (k >= bn || k < 138 || (sp - 8) >= bn || (sp - 8) < 138) {
+		printf("[error] illegal memory access\n");
+		x86_64_reg_set_ip(bin, bn, ip);
+	}
+	else {
+		sp = sp - 8;
+		ip = ip - 138;
+		bin[sp] = ip;
+		bin[sp + 1] = ip >> 8;
+		bin[sp + 2] = ip >> 16;
+		bin[sp + 3] = ip >> 24;
+		bin[sp + 4] = ip >> 32;
+		bin[sp + 5] = ip >> 40;
+		bin[sp + 6] = ip >> 48;
+		bin[sp + 7] = ip >> 56;
+		x86_64_reg_set_ip(bin, bn, k);
+		x86_64_reg_set_sp(bin, sp);
+	}
+}
+
+void x86_64_inc_jmp_reg_16(uint8_t* bin, uint64_t bn, uint64_t ip, uint64_t src) { 
+	if (src >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	uint64_t k = bin[src] + (bin[src + 1] << 8);
+	if (k >= bn || k < 138) {
+		printf("[error] illegal memory access\n");
+		x86_64_reg_set_ip(bin, bn, ip);
+	}
+	else {
+		x86_64_reg_set_ip(bin, bn, k);
+	}
+}
+
+void x86_64_inc_jmp_reg_64(uint8_t* bin, uint64_t bn, uint64_t ip, uint64_t src) { 
+	if (src >= bn) {
+		printf("[error] illegal memory access\n");
+	}
+	uint64_t k = bin[src] + (bin[src + 1] << 8) + (bin[src + 2] << 16) + (bin[src + 3] << 24) + (bin[src + 4] << 32) + (bin[src + 5] << 40) + (bin[src + 6] << 48) + (bin[src + 7] << 56) + 138;
+	if (k >= bn || k < 138) {
+		printf("[error] illegal memory access\n");
+		x86_64_reg_set_ip(bin, bn, ip);
+	}
+	else {
+		x86_64_reg_set_ip(bin, bn, k);
 	}
 }
 
@@ -20821,6 +21043,311 @@ uint8_t x86_64_inc_blnk(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op0, uin
 	return 1;
 }
 
+uint8_t x86_64_inc_clnk(uint8_t* bin, uint64_t bn, uint64_t ip, uint8_t op0, uint8_t op1, void (*x86_64_inc_op_16) (uint8_t*, uint64_t, uint64_t, uint64_t), void (*x86_64_inc_op_64) (uint8_t*, uint64_t, uint64_t, uint64_t), uint8_t lga, uint8_t lgo, uint8_t rex, uint8_t rx0, uint8_t rx1, uint8_t rx2, uint8_t rx3) {
+	if (bin[ip] == op0 && (bin[ip + 1] >> 3) == (0 | op1)) {
+		ip = ip + 1;
+		uint8_t mrd = (bin[ip] & 7) + (8 * rx0);
+		
+		if ((mrd & 7) == 4) {
+			ip = ip + 1;
+			uint8_t b = (bin[ip] & 7) + (8 * rx0);
+			uint8_t i = ((bin[ip] >> 3) & 7) + (8 * rx1);
+			uint8_t s = (bin[ip] >> 6);
+			if (i == 4 && (b & 7) == 5) {
+				ip = ip + 1;
+				uint32_t d = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+				ip = ip + 4;
+				//do not use
+				x86_64_reg_set_ip(bin, bn, ip);
+			}
+			else {
+				ip = ip + 1;
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, ip, x86_64_inc_addr_u32(bin, bn, b * 8, i * 8, s, 0) + 138);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, ip, x86_64_inc_addr_u64(bin, bn, b * 8, i * 8, s, 0) + 138);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, ip, x86_64_inc_addr_u32(bin, bn, b * 8, i * 8, s, 0) + 138);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, ip, x86_64_inc_addr_u64(bin, bn, b * 8, i * 8, s, 0) + 138);
+					}
+				}
+			}
+		}
+		else if ((mrd & 7) == 5) {
+			ip = ip + 1;
+			uint32_t d = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+			ip = ip + 4;
+			if (d & 2147483648) {
+				d = ~d + 1;
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, ip, ((uint32_t) ip) - d);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, ip, ip - d);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, ip, ((uint32_t) ip) - d);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, ip, ip - d);
+					}
+				}
+			}
+			else {
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, ip, ((uint32_t) ip) + d);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, ip, ip + d);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, ip, ((uint32_t) ip) + d);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, ip, ip + d);
+					}
+				}
+			}
+		}
+		else {
+			ip = ip + 1;
+			if (lgo) {
+				if (lga) {
+					x86_64_inc_op_16(bin, bn, ip, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, 0) + 138);
+				}
+				else {
+					x86_64_inc_op_16(bin, bn, ip, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, 0) + 138);
+				}
+			}
+			else {
+				if (lga) {
+					x86_64_inc_op_64(bin, bn, ip, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, 0) + 138);
+				}
+				else {
+					x86_64_inc_op_64(bin, bn, ip, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, 0) + 138);
+				}
+			}
+		}
+		return 0;
+	}
+	else if (bin[ip] == op0 && (bin[ip + 1] >> 3) == (8 | op1)) {
+		ip = ip + 1;
+		uint8_t mrd = (bin[ip] & 7) + (8 * rx0);
+		
+		if ((mrd & 7) == 4) {
+			ip = ip + 1;
+			uint8_t b = (bin[ip] & 7) + (8 * rx0);
+			uint8_t i = ((bin[ip] >> 3) & 7) + (8 * rx1);
+			uint8_t s = (bin[ip] >> 6);
+			
+			ip = ip + 1;
+			uint8_t d = bin[ip];
+			ip = ip + 1;
+			if (d & 128) {
+				d = ~d + 1;
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, ip, x86_64_inc_addr_s32(bin, bn, b * 8, i * 8, s, d) + 138);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, ip, x86_64_inc_addr_s64(bin, bn, b * 8, i * 8, s, d) + 138);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, ip, x86_64_inc_addr_s32(bin, bn, b * 8, i * 8, s, d) + 138);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, ip, x86_64_inc_addr_s64(bin, bn, b * 8, i * 8, s, d) + 138);
+					}
+				}
+			}
+			else {
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, ip, x86_64_inc_addr_u32(bin, bn, b * 8, i * 8, s, d) + 138);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, ip, x86_64_inc_addr_u64(bin, bn, b * 8, i * 8, s, d) + 138);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, ip, x86_64_inc_addr_u32(bin, bn, b * 8, i * 8, s, d) + 138);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, ip, x86_64_inc_addr_u64(bin, bn, b * 8, i * 8, s, d) + 138);
+					}
+				}
+			}
+		}
+		else {
+			ip = ip + 1;
+			uint8_t d = bin[ip];
+			ip = ip + 1;
+			if (d & 128) {
+				d = ~d + 1;
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, ip, x86_64_inc_addr_s32(bin, bn, mrd * 8, 32, 0, d) + 138);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, ip, x86_64_inc_addr_s64(bin, bn, mrd * 8, 32, 0, d) + 138);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, ip, x86_64_inc_addr_s32(bin, bn, mrd * 8, 32, 0, d) + 138);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, ip, x86_64_inc_addr_s64(bin, bn, mrd * 8, 32, 0, d) + 138);
+					}
+				}
+			}
+			else {
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, ip, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, d) + 138);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, ip, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, d) + 138);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, ip, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, d) + 138);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, ip, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, d) + 138);
+					}
+				}
+			}
+		}
+		return 0;
+	}
+	else if (bin[ip] == op0 && (bin[ip + 1] >> 3) == (16 | op1)) {
+		ip = ip + 1;
+		uint8_t mrd = (bin[ip] & 7) + (8 * rx0);
+		
+		if ((mrd & 7) == 4) {
+			ip = ip + 1;
+			uint8_t b = (bin[ip] & 7) + (8 * rx0);
+			uint8_t i = ((bin[ip] >> 3) & 7) + (8 * rx1);
+			uint8_t s = (bin[ip] >> 6);
+			ip = ip + 1;
+			uint32_t d = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+			ip = ip + 4;
+			if (d & 2147483648) {
+				d = ~d + 1;
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, ip, x86_64_inc_addr_s32(bin, bn, b * 8, i * 8, s, d) + 138);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, ip, x86_64_inc_addr_s64(bin, bn, b * 8, i * 8, s, d) + 138);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, ip, x86_64_inc_addr_s32(bin, bn, b * 8, i * 8, s, d) + 138);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, ip, x86_64_inc_addr_s64(bin, bn, b * 8, i * 8, s, d) + 138);
+					}
+				}
+			}
+			else {
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, ip, x86_64_inc_addr_u32(bin, bn, b * 8, i * 8, s, d) + 138);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, ip, x86_64_inc_addr_u64(bin, bn, b * 8, i * 8, s, d) + 138);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, ip, x86_64_inc_addr_u32(bin, bn, b * 8, i * 8, s, d) + 138);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, ip, x86_64_inc_addr_u64(bin, bn, b * 8, i * 8, s, d) + 138);
+					}
+				}
+			}
+		}
+		else {
+			ip = ip + 1;
+			uint32_t d = bin[ip] + (bin[ip + 1] << 8) + (bin[ip + 2] << 16) + (bin[ip + 3] << 24);
+			ip = ip + 4;
+			if (d & 2147483648) {
+				d = ~d + 1;
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, ip, x86_64_inc_addr_s32(bin, bn, mrd * 8, 32, 0, d) + 138);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, ip, x86_64_inc_addr_s64(bin, bn, mrd * 8, 32, 0, d) + 138);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, ip, x86_64_inc_addr_s32(bin, bn, mrd * 8, 32, 0, d) + 138);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, ip, x86_64_inc_addr_s64(bin, bn, mrd * 8, 32, 0, d) + 138);
+					}
+				}
+			}
+			else {
+				if (lgo) {
+					if (lga) {
+						x86_64_inc_op_16(bin, bn, ip, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, d) + 138);
+					}
+					else {
+						x86_64_inc_op_16(bin, bn, ip, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, d) + 138);
+					}
+				}
+				else {
+					if (lga) {
+						x86_64_inc_op_64(bin, bn, ip, x86_64_inc_addr_u32(bin, bn, mrd * 8, 32, 0, d) + 138);
+					}
+					else {
+						x86_64_inc_op_64(bin, bn, ip, x86_64_inc_addr_u64(bin, bn, mrd * 8, 32, 0, d) + 138);
+					}
+				}
+			}
+		}
+		return 0;
+	}
+	else if (bin[ip] == op0 && (bin[ip + 1] >> 3) == (24 | op1)) {
+		ip = ip + 1;
+		uint8_t mrd = (bin[ip] & 7) + (8 * rx0);
+		
+		ip = ip + 1;
+		if (lgo) {
+			x86_64_inc_op_16(bin, bn, ip, mrd * 8);
+		}
+		else {
+			x86_64_inc_op_64(bin, bn, ip, mrd * 8);
+		}
+		return 0;
+	}
+	return 1;
+}
+
 void x86_64_inc(uint8_t* bin, uint64_t bn, uint64_t ip, void (*x86_64_syscall) (uint8_t*, uint64_t)) {
 	uint8_t lga = 0;
 	uint8_t lgo = 0;
@@ -21282,6 +21809,15 @@ void x86_64_inc(uint8_t* bin, uint64_t bn, uint64_t ip, void (*x86_64_syscall) (
 	}
 	if (eo) {
 		eo = x86_64_inc_blnk(bin, bn, ip, 254, 0, x86_64_inc_inc_reg_8, x86_64_inc_inc_reg_16, x86_64_inc_inc_reg_32, x86_64_inc_inc_reg_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_blnk(bin, bn, ip, 254, 1, x86_64_inc_dec_reg_8, x86_64_inc_dec_reg_16, x86_64_inc_dec_reg_32, x86_64_inc_dec_reg_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_clnk(bin, bn, ip, 255, 2, x86_64_inc_call_reg_16, x86_64_inc_call_reg_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+	}
+	if (eo) {
+		eo = x86_64_inc_clnk(bin, bn, ip, 255, 2, x86_64_inc_jmp_reg_16, x86_64_inc_jmp_reg_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
 		eo = x86_64_inc_sys(bin, bn, ip, x86_64_syscall);
