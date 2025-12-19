@@ -21817,7 +21817,7 @@ void x86_64_inc(uint8_t* bin, uint64_t bn, uint64_t ip, void (*x86_64_syscall) (
 		eo = x86_64_inc_clnk(bin, bn, ip, 255, 2, x86_64_inc_call_reg_16, x86_64_inc_call_reg_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
-		eo = x86_64_inc_clnk(bin, bn, ip, 255, 2, x86_64_inc_jmp_reg_16, x86_64_inc_jmp_reg_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
+		eo = x86_64_inc_clnk(bin, bn, ip, 255, 4, x86_64_inc_jmp_reg_16, x86_64_inc_jmp_reg_64, lga, lgo, rex, rx0, rx1, rx2, rx3);
 	}
 	if (eo) {
 		eo = x86_64_inc_sys(bin, bn, ip, x86_64_syscall);
